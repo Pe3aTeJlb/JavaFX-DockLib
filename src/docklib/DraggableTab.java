@@ -1,5 +1,7 @@
 package docklib;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -12,6 +14,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -144,13 +147,13 @@ public class DraggableTab extends Tab {
 
                 } else {
 
-                    if(!this.isSelected() && !originTabPane.isCollapsed())
-                        return;
+                    if(this.isSelected() || originTabPane.isCollapsed()) {
 
-                    if(originTabPane.isCollapsed()){
-                        originTabPane.show();
-                    }else {
-                        originTabPane.collapse();
+                        if (originTabPane.isCollapsed()) {
+                            originTabPane.show();
+                        } else {
+                            originTabPane.collapse();
+                        }
                     }
 
                 }
@@ -396,8 +399,6 @@ public class DraggableTab extends Tab {
 
                     } else if(side == Side.BOTTOM){
 
-                        System.out.println(firstTabRect.getMinX() + " " + firstTabRect.getMaxX() + " " + screenPoint.getX());
-
                         if (screenPoint.getY() < firstTabRect.getMinY() || screenPoint.getY() > firstTabRect.getMaxY()) {
                             return null;
                         }
@@ -611,6 +612,8 @@ public class DraggableTab extends Tab {
 
     private class DraggableTabContextMenu extends ContextMenu{
 
+        ChangeListener<Boolean> focusListener;
+
         public DraggableTabContextMenu(DraggableTab tab, TabGroup tabGroup){
 
             super();
@@ -623,17 +626,19 @@ public class DraggableTab extends Tab {
 
         }
 
-
         public void populateSystemMenu(DraggableTab tab){
 
-            MenuItem dockPinnedItem = new MenuItem("dock");
+            focusListener = (ov, onHidden, onShown) -> {
+                if(onHidden){
+                    ((DraggableTabPane)tab.getTabPane()).collapse();
+                }
+            };
+
+            MenuItem dockPinnedItem = new MenuItem("dock pinned");
             dockPinnedItem.setOnAction(event -> setDockedPinned(tab));
 
-            MenuItem dockUnpinnedItem = new MenuItem("dock");
-            dockPinnedItem.setOnAction(event -> setDockedUnpinned(tab));
-
-            MenuItem undockItem = new MenuItem("undock");
-            undockItem.setOnAction(event -> setUndocked(tab));
+            MenuItem dockUnpinnedItem = new MenuItem("dock unpinned");
+            dockUnpinnedItem.setOnAction(event -> setDockedUnpinned(tab));
 
             MenuItem floatItem = new MenuItem("float");
             floatItem.setOnAction(event -> setFloating(tab));
@@ -642,12 +647,15 @@ public class DraggableTab extends Tab {
             windowItem.setOnAction(event -> setWindowed(tab));
 
             MenuItem closeItem = new MenuItem("close");
-            closeItem.setOnAction(event -> tab.getTabPane().getTabs().remove(tab));
+            closeItem.setOnAction(event -> {
+                terminateFloatStage(null);
+                tab.getTabPane().focusedProperty().removeListener(focusListener);
+                tab.getTabPane().getTabs().remove(tab);
+            });
 
             this.getItems().addAll(
                     dockPinnedItem,
                     dockUnpinnedItem,
-                    undockItem,
                     floatItem,
                     windowItem,
                     new SeparatorMenuItem(),
@@ -658,24 +666,27 @@ public class DraggableTab extends Tab {
 
         private void setDockedPinned(DraggableTab tab){
 
+            //idk default behaviour lolxd
+            terminateFloatStage(tab);
+
+            tab.getTabPane().focusedProperty().removeListener(focusListener);
+            ((DraggableTabPane)tab.getTabPane()).show();
+
         }
 
         private void setDockedUnpinned(DraggableTab tab){
 
-        }
-
-        private void setUndocked(DraggableTab tab){
+            terminateFloatStage(tab);
+            tab.getTabPane().focusedProperty().addListener(focusListener);
 
         }
 
         private void setFloating(DraggableTab tab){
 
-            if(floatStage != null) {
-                floatStage.hide();
-                floatStage.setScene(null);
-            }
+            terminateFloatStage(null);
 
             Node content = tab.getContent();
+            ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
             floatStage.initOwner(tab.getTabPane().getScene().getWindow());
@@ -702,12 +713,10 @@ public class DraggableTab extends Tab {
 
         private void setWindowed(DraggableTab tab){
 
-            if(floatStage != null) {
-                floatStage.hide();
-                floatStage.setScene(null);
-            }
+            terminateFloatStage(null);
 
             Node content = tab.getContent();
+            ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
             floatStage.initOwner(tab.getTabPane().getScene().getWindow());
@@ -728,6 +737,17 @@ public class DraggableTab extends Tab {
             floatStage.show();
 
             floatStage.requestFocus();
+
+        }
+
+        private void terminateFloatStage(DraggableTab tab){
+
+            if(floatStage != null) {
+                if(tab != null) tab.setContent(floatStage.getScene().getRoot());
+                floatStage.hide();
+                floatStage.setScene(null);
+                floatStage = null;
+            }
 
         }
 

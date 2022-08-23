@@ -39,6 +39,9 @@ public class DraggableTabPane extends TabPane {
 
     public void collapse(){
 
+        if(collapsed)
+            return;
+
         if(getSide() == Side.TOP || getSide() == Side.BOTTOM) {
             prefHeight = this.getPrefHeight();
             prefWidth = this.getPrefWidth();
@@ -54,6 +57,9 @@ public class DraggableTabPane extends TabPane {
     }
 
     public void show(){
+
+        if(!collapsed)
+            return;
 
         if(getSide() == Side.TOP || getSide() == Side.BOTTOM) {
             this.setMaxHeight(prefHeight);
