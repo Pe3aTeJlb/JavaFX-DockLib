@@ -1,4 +1,4 @@
-import dockpanefx.Test;
+import docklib.Test;
 
 public class Launcher {
 
