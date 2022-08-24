@@ -9,7 +9,7 @@ public class IconsManager {
 
     private static final String logoPath = "docklib/resources";
 
-    public static final Image StageIcon = new Image("docklib/resources/docknode.png");
+    public static final Image StageIcon = new Image("docklib/resources/icon.png");
 
     public static ImageView getIcon(String name) {
         return getImageView(name);

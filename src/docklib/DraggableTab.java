@@ -1,7 +1,6 @@
 package docklib;
 
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -14,12 +13,15 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import static docklib.DraggableTabPane.tabPanes;
 
+/* !!!Warning!!!
+* This realisation doesn't use initOwner() to share window lifecycle cause then we can't minimize detached tabs,
+* so, u have to write u own frame/window manager to handle this problem or just accept this fact
+*/
 public class DraggableTab extends Tab {
 
     private Label tabLabel;
@@ -304,7 +306,7 @@ public class DraggableTab extends Tab {
                 if(createNewFloatStage) {
 
                     final Stage newFloatStage = new Stage();
-                    newFloatStage.initOwner(winRootStage.getScene().getWindow());
+                    //newFloatStage.initOwner(winRootStage.getScene().getWindow());
                     final DraggableTabPane pane = new DraggableTabPane(winRootStage, tabGroup);
 
                     tabPanes.add(pane);
@@ -517,7 +519,7 @@ public class DraggableTab extends Tab {
         if(side == Side.TOP ) {
             return new Rectangle2D(
                     node.localToScene(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY()).getX() + node.getScene().getWindow().getX(),
-                    node.localToScreen(node.localToScene(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY())).getY() - node.getHeight(),
+                    node.localToScreen(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY()).getY() - node.getHeight(),
                     node.getWidth(),
                     2 * node.getHeight()
             );
@@ -612,7 +614,8 @@ public class DraggableTab extends Tab {
 
     private class DraggableTabContextMenu extends ContextMenu{
 
-        ChangeListener<Boolean> focusListener;
+        private TabViewMode viewMode;
+        private ChangeListener<Boolean> focusListener;
 
         public DraggableTabContextMenu(DraggableTab tab, TabGroup tabGroup){
 
@@ -627,6 +630,8 @@ public class DraggableTab extends Tab {
         }
 
         public void populateSystemMenu(DraggableTab tab){
+
+            viewMode = TabViewMode.DockPinned;
 
             focusListener = (ov, onHidden, onShown) -> {
                 if(onHidden){
@@ -666,22 +671,35 @@ public class DraggableTab extends Tab {
 
         private void setDockedPinned(DraggableTab tab){
 
+            if(viewMode == TabViewMode.DockPinned)
+                return;
+
             //idk default behaviour lolxd
             terminateFloatStage(tab);
 
             tab.getTabPane().focusedProperty().removeListener(focusListener);
             ((DraggableTabPane)tab.getTabPane()).show();
 
+            viewMode = TabViewMode.DockPinned;
+
         }
 
         private void setDockedUnpinned(DraggableTab tab){
 
+            if(viewMode == TabViewMode.DockUnpinned)
+                return;
+
             terminateFloatStage(tab);
             tab.getTabPane().focusedProperty().addListener(focusListener);
+
+            viewMode = TabViewMode.DockUnpinned;
 
         }
 
         private void setFloating(DraggableTab tab){
+
+            if(viewMode == TabViewMode.Float)
+                return;
 
             terminateFloatStage(null);
 
@@ -689,7 +707,7 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
-            floatStage.initOwner(tab.getTabPane().getScene().getWindow());
+            //floatStage.initOwner(tab.getTabPane().getScene().getWindow());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -709,9 +727,14 @@ public class DraggableTab extends Tab {
 
             floatStage.requestFocus();
 
+            viewMode = TabViewMode.Float;
+
         }
 
         private void setWindowed(DraggableTab tab){
+
+            if(viewMode == TabViewMode.Window)
+                return;
 
             terminateFloatStage(null);
 
@@ -719,7 +742,7 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
-            floatStage.initOwner(tab.getTabPane().getScene().getWindow());
+            //floatStage.initOwner(tab.getTabPane().getScene().getWindow());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -737,6 +760,8 @@ public class DraggableTab extends Tab {
             floatStage.show();
 
             floatStage.requestFocus();
+
+            viewMode = TabViewMode.Window;
 
         }
 

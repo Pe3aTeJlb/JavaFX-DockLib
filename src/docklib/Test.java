@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -16,16 +17,16 @@ public class Test extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        HBox hBox = new HBox();
+        VBox hBox = new VBox();
         hBox.setAlignment(Pos.TOP_LEFT);
         Scene scene = new Scene(hBox, 800, 600);
 
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(scene);
 
-        DraggableTabPane draggableTabPane1 = new DraggableTabPane(primaryStage, TabGroup.System);
+        DraggableTabPane draggableTabPane1 = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
         draggableTabPane1.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-        draggableTabPane1.setSide(Side.LEFT);
+        draggableTabPane1.setSide(Side.TOP);
         draggableTabPane1.setRotateGraphic(true);
 
         DraggableTab tab1 = new DraggableTab("System Tab 1", draggableTabPane1, "icon.png");
@@ -124,10 +125,15 @@ public class Test extends Application {
 
         hBox.getChildren().addAll(
                 draggableTabPane1,
-                draggableTabPane2,
-                draggableTabPane3,
-                draggableTabPane4
+                draggableTabPane2
+               // draggableTabPane3,
+               // draggableTabPane4
         );
+
+        VBox.setVgrow(draggableTabPane1, Priority.ALWAYS);
+        VBox.setVgrow(draggableTabPane2, Priority.ALWAYS);
+        VBox.setVgrow(draggableTabPane3, Priority.ALWAYS);
+        VBox.setVgrow(draggableTabPane4, Priority.ALWAYS);
 
         HBox.setHgrow(draggableTabPane1, Priority.ALWAYS);
         HBox.setHgrow(draggableTabPane2, Priority.ALWAYS);
