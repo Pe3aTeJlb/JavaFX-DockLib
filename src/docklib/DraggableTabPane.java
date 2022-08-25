@@ -12,16 +12,24 @@ public class DraggableTabPane extends TabPane {
     public static final Set<DraggableTabPane> tabPanes = new HashSet<>();
 
     private TabGroup tabGroup;
-    private Stage rootStage;
 
     private double prefWidth, prefHeight;
     private boolean collapsed = false;
 
-    public DraggableTabPane(Stage rootStage, TabGroup dockGroup){
+
+    public DraggableTabPane(){
 
         super();
 
-        this.rootStage = rootStage;
+        this.tabGroup = TabGroup.None;
+        this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+
+    }
+
+    public DraggableTabPane(TabGroup dockGroup){
+
+        super();
+
         this.tabGroup = dockGroup;
         if(dockGroup == TabGroup.System) {
             this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -61,13 +69,8 @@ public class DraggableTabPane extends TabPane {
         if(!collapsed)
             return;
 
-        if(getSide() == Side.TOP || getSide() == Side.BOTTOM) {
-            this.setMaxHeight(prefHeight);
-            this.setMaxWidth(prefWidth);
-        } else {
-            this.setMaxHeight(prefHeight);
-            this.setMaxWidth(prefWidth);
-        }
+        this.setMaxHeight(prefHeight);
+        this.setMaxWidth(prefWidth);
 
         collapsed = false;
 
@@ -79,10 +82,6 @@ public class DraggableTabPane extends TabPane {
 
     public TabGroup getTabGroup(){
         return tabGroup;
-    }
-
-    public Stage getRootStage(){
-        return rootStage;
     }
 
     public boolean isCollapsed(){

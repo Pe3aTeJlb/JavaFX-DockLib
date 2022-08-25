@@ -1,12 +1,12 @@
 package docklib;
 
+import docklib.trash.DockTitleBar;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
-import javafx.geometry.Side;
+import javafx.event.Event;
+import javafx.geometry.*;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
@@ -15,6 +15,11 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Stack;
 
 import static docklib.DraggableTabPane.tabPanes;
 
@@ -39,13 +44,13 @@ public class DraggableTab extends Tab {
 
     private DraggableTabPane lastInsertPane;
 
-    private Stage winRootStage;
     private Stage floatStage;
     private boolean createNewFloatStage = true;
 
     //this means, u can detach System tab and attach it back or to another System tabPane
     private boolean detachable;
 
+    private HashMap<Window, Node> dragNodes = new HashMap<Window, Node>();
 
 
     public DraggableTab(String text, DraggableTabPane tabPane) {
@@ -62,7 +67,6 @@ public class DraggableTab extends Tab {
         detachable = tabGroup != TabGroup.System;
 
         tabPanes.add(tabPane);
-        winRootStage = tabPane.getRootStage();
 
         tabLabel = new Label(text);
         if(iconName != null) {
@@ -71,8 +75,10 @@ public class DraggableTab extends Tab {
         setGraphic(tabLabel);
 
         //Prepare dragStage, which shown when tab dragged
+
         dragStage = new Stage();
         dragStage.initStyle(StageStyle.UNDECORATED);
+        dragStage.setAlwaysOnTop(true);
 
         StackPane dragStagePane = new StackPane();
         dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
@@ -181,23 +187,135 @@ public class DraggableTab extends Tab {
 
     }
 
+
+    /**
+     * The task that is to be executed when the dock event target is picked. This provides context for
+     * what specific events and what order the events should be fired.
+     *
+     * @since DockFX 0.1
+     */
+    private abstract class EventTask {
+        /**
+         * The number of times this task has been executed.
+         */
+        protected int executions = 0;
+
+        /**
+         * Creates a default DockTitleBar with captions and dragging behavior.
+         *
+         * @param node The node that was chosen as the event target.
+         * @param dragNode The node that was last event target.
+         */
+        public abstract void run(Node node, Node dragNode);
+
+        /**
+         * The number of times this task has been executed.
+         *
+         * @return The number of times this task has been executed.
+         */
+        public int getExecutions() {
+            return executions;
+        }
+
+        /**
+         * Reset the execution count to zero.
+         */
+        public void reset() {
+            executions = 0;
+        }
+    }
+
+    /**
+     * Traverse the scene graph for all open stages and pick an event target for a dock event based on
+     * the location. Once the event target is chosen run the event task with the target and the
+     * previous target of the last dock event if one is cached. If an event target is not found fire
+     * the explicit dock event on the stage root if one is provided.
+     *
+     * @param location The location of the dock event in screen coordinates.
+     * @param eventTask The event task to be run when the event target is found.
+     * @param explicit The explicit event to be fired on the stage root when no event target is found.
+     */
+    private void pickEventTarget(Point2D location, EventTask eventTask, Event explicit) {
+
+        List<DockPane> dockPanes = DockPane.dockPanes;
+
+        // fire the dock over event for the active stages
+        for (DockPane dockPane : dockPanes) {
+
+            Window window = dockPane.getScene().getWindow();
+            if (!(window instanceof Stage)) continue;
+            Stage targetStage = (Stage) window;
+
+            // obviously this title bar does not need to receive its own events
+            // though users of this library may want to know when their
+            // dock node is being dragged by subclassing it or attaching
+            // an event listener in which case a new event can be defined or
+            // this continue behavior can be removed
+            //if (targetStage == this.dockNode.getStage())
+            //    continue;
+
+            eventTask.reset();
+
+            Node dragNode = dragNodes.get(targetStage);
+
+            Parent root = targetStage.getScene().getRoot();
+            Stack<Parent> stack = new Stack<Parent>();
+            if (root.contains(root.screenToLocal(location.getX(), location.getY()))
+                    && !root.isMouseTransparent()) {
+                stack.push(root);
+            }
+            // depth first traversal to find the deepest node or parent with no children
+            // that intersects the point of interest
+            while (!stack.isEmpty()) {
+                Parent parent = stack.pop();
+                // if this parent contains the mouse click in screen coordinates in its local bounds
+                // then traverse its children
+                boolean notFired = true;
+                for (Node node : parent.getChildrenUnmodifiable()) {
+                    if (node.contains(node.screenToLocal(location.getX(), location.getY()))
+                            && !node.isMouseTransparent()) {
+                        if (node instanceof Parent) {
+                            stack.push((Parent) node);
+                        } else {
+                            eventTask.run(node, dragNode);
+                        }
+                        notFired = false;
+                        break;
+                    }
+                }
+                // if none of the children fired the event or there were no children
+                // fire it with the parent as the target to receive the event
+                if (notFired) {
+                    eventTask.run(parent, dragNode);
+                }
+            }
+
+            if (explicit != null && dragNode != null && eventTask.getExecutions() < 1) {
+                Event.fireEvent(dragNode, explicit.copyFor(this, dragNode));
+                dragNodes.put(targetStage, null);
+            }
+
+        }
+
+    }
+
     public void defineDragContinueEvent(){
 
-        originTabPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
+        originTabPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
 
-            if(e.getButton() != MouseButton.PRIMARY)
+            if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
             if(!detached)
                 return;
 
-            dragStage.setX(e.getScreenX() - dragStage.getWidth() / 2);
-            dragStage.setY(e.getScreenY() - dragStage.getHeight() / 2);
+            dragStage.setX(event.getScreenX() - dragStage.getWidth() / 2);
+            dragStage.setY(event.getScreenY() - dragStage.getHeight() / 2);
 
             //Make spread "Animation" at target tabpane while attach
             tabPanes.add(originTabPane);
 
-            Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
+            Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
             InsertData data = getInsertData(screenPoint);
 
             //reset tab css in last pointed tabPane
@@ -244,23 +362,56 @@ public class DraggableTab extends Tab {
                 }
             }
 
+            /*
+            //Dock events
+            DockEvent dockEnterEvent =
+                    new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
+                            event.getY(), event.getScreenX(), event.getScreenY(), null);
+            DockEvent dockOverEvent =
+                    new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_OVER, event.getX(),
+                            event.getY(), event.getScreenX(), event.getScreenY(), null);
+            DockEvent dockExitEvent =
+                    new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_EXIT, event.getX(),
+                            event.getY(), event.getScreenX(), event.getScreenY(), null);
+
+            EventTask eventTask = new EventTask() {
+                @Override
+                public void run(Node node, Node dragNode) {
+                    executions++;
+
+                    if (dragNode != node) {
+                        Event.fireEvent(node, dockEnterEvent.copyFor(this, node));
+
+                        if (dragNode != null) {
+                            Event.fireEvent(dragNode, dockExitEvent.copyFor(this, dragNode));
+                        }
+
+                        dragNodes.put(node.getScene().getWindow(), node);
+                    }
+                    Event.fireEvent(node, dockOverEvent.copyFor(this, node));
+                }
+            };
+
+            this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask,
+                    dockExitEvent);
+*/
         });
 
     }
 
     public void defineMouseReleaseEvent(){
 
-        originTabPane.setOnMouseReleased(e -> {
+        originTabPane.setOnMouseReleased(event -> {
 
-            if(e.getButton() != MouseButton.PRIMARY)
+            if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
             dragStage.hide();
 
-            if (!e.isStillSincePress()) {
+            if (!event.isStillSincePress()) {
 
                 //Insert tab into tabPane
-                Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
+                Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
                 DraggableTabPane oldTabPane = originTabPane;
                 int oldIndex = originIndex;
                 tabPanes.add(oldTabPane);
@@ -306,8 +457,7 @@ public class DraggableTab extends Tab {
                 if(createNewFloatStage) {
 
                     final Stage newFloatStage = new Stage();
-                    //newFloatStage.initOwner(winRootStage.getScene().getWindow());
-                    final DraggableTabPane pane = new DraggableTabPane(winRootStage, tabGroup);
+                    final DraggableTabPane pane = new DraggableTabPane(tabGroup);
 
                     tabPanes.add(pane);
 
@@ -327,8 +477,8 @@ public class DraggableTab extends Tab {
                     detached = false;
                     newFloatStage.setScene(new Scene(pane));
                     newFloatStage.initStyle(StageStyle.DECORATED);
-                    newFloatStage.setX(e.getScreenX());
-                    newFloatStage.setY(e.getScreenY());
+                    newFloatStage.setX(event.getScreenX());
+                    newFloatStage.setY(event.getScreenY());
                     newFloatStage.show();
                     pane.requestLayout();
                     pane.requestFocus();
@@ -337,12 +487,40 @@ public class DraggableTab extends Tab {
 
                     detached = false;
                     originTabPane.getTabs().add(DraggableTab.this);
-                    floatStage.setX(e.getScreenX());
-                    floatStage.setY(e.getScreenY());
+                    floatStage.setX(event.getScreenX());
+                    floatStage.setY(event.getScreenY());
 
                 }
 
             }
+
+            /*
+            DockEvent dockReleasedEvent =
+                    new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_RELEASED, event.getX(),
+                            event.getY(), event.getScreenX(), event.getScreenY(), null, originTabPane);
+
+            EventTask eventTask = new EventTask() {
+                @Override
+                public void run(Node node, Node dragNode) {
+                    executions++;
+                    if (dragNode != node) {
+                        Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
+                    }
+                    Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
+                }
+            };
+
+            this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask, null);
+
+            dragNodes.clear();
+*/
+            // Remove temporary event handler for bug mentioned above.
+            /*
+            DockPane dockPane = this.getDockNode().getDockPane();
+            if (dockPane != null) {
+                dockPane.removeEventFilter(MouseEvent.MOUSE_DRAGGED, this);
+                dockPane.removeEventFilter(MouseEvent.MOUSE_RELEASED, this);
+            }*/
 
         });
 
@@ -707,7 +885,6 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
-            //floatStage.initOwner(tab.getTabPane().getScene().getWindow());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -742,7 +919,6 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
-            //floatStage.initOwner(tab.getTabPane().getScene().getWindow());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);

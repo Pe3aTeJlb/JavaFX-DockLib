@@ -1,4 +1,5 @@
 import docklib.Test;
+import docklib.trash.DockFX;
 
 public class Launcher {
 

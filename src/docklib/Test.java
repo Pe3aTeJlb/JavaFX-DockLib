@@ -24,7 +24,7 @@ public class Test extends Application {
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(scene);
 
-        DraggableTabPane draggableTabPane1 = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
+        DraggableTabPane draggableTabPane1 = new DraggableTabPane(TabGroup.WorkSpace);
         draggableTabPane1.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         draggableTabPane1.setSide(Side.TOP);
         draggableTabPane1.setRotateGraphic(true);
@@ -48,7 +48,7 @@ public class Test extends Application {
                 tab4
         );
 
-        DraggableTabPane draggableTabPane2 = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
+        DraggableTabPane draggableTabPane2 = new DraggableTabPane(TabGroup.WorkSpace);
         draggableTabPane2.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         draggableTabPane2.setSide(Side.TOP);
         draggableTabPane2.setRotateGraphic(true);
@@ -73,7 +73,7 @@ public class Test extends Application {
         );
 
 
-        DraggableTabPane draggableTabPane3 = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
+        DraggableTabPane draggableTabPane3 = new DraggableTabPane(TabGroup.WorkSpace);
         draggableTabPane3.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         draggableTabPane3.setSide(Side.BOTTOM);
         draggableTabPane3.setRotateGraphic(true);
@@ -97,7 +97,7 @@ public class Test extends Application {
                 tab34
         );
 
-        DraggableTabPane draggableTabPane4 = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
+        DraggableTabPane draggableTabPane4 = new DraggableTabPane(TabGroup.WorkSpace);
         draggableTabPane4.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         draggableTabPane4.setSide(Side.RIGHT);
         draggableTabPane4.setRotateGraphic(true);
@@ -141,6 +141,17 @@ public class Test extends Application {
         HBox.setHgrow(draggableTabPane4, Priority.ALWAYS);
 
         primaryStage.show();
+
+
+        Stage newStage = new Stage();
+        newStage.setTitle("Dock");
+
+        DockPane dockPane = new DockPane();
+
+        newStage.setScene(new Scene(dockPane, 800, 600));
+
+        newStage.show();
+
     }
 
 
