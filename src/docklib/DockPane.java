@@ -3,17 +3,22 @@ package docklib;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Popup;
+import javafx.stage.Window;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +36,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     private DockAnchorButton dockAnchorButton;
     private Rectangle dockAreaHighlighter;
 
-    private Node dockNodeDrag;
+    private Node dockNodeTarget;
     private boolean receivedEnter = false;
 
     private Node dockAreaDrag;
-    private DockAnchor dockAnchorDrag;
+    private DockAnchor dockAnchor;
 
     public DockPane(){
 
@@ -48,19 +53,19 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             if (event.getEventType() == DockEvent.DOCK_ENTER) {
                 this.receivedEnter = true;
             } else if (event.getEventType() == DockEvent.DOCK_OVER) {
-                this.dockNodeDrag = null;
+                this.dockNodeTarget = null;
             }
+
         });
 
-
         dockPopup = new Popup();
-        dockPopup.setAutoFix(false);
+      //  dockPopup.setAutoFix(false);
         dockPopup.hide();
 
-        dockAreaHighlighter = new Rectangle();
+        dockAreaHighlighter = new Rectangle(this.getWidth(),this.getHeight(), 10, 10);
         dockAreaHighlighter.setManaged(false);
         dockAreaHighlighter.setMouseTransparent(true);
-        dockAreaHighlighter.setFill(Color.RED);
+        dockAreaHighlighter.setFill(new Color(0.4, 0.859, 1, 0.196));
         dockAreaHighlighter.setVisible(false);
 
         dockAnchorButton = new DockAnchorButton(false, DockAnchor.TOP);
@@ -68,11 +73,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         StackPane dockRootPane = new StackPane();
         dockRootPane.prefWidthProperty().bind(this.widthProperty());
         dockRootPane.prefHeightProperty().bind(this.heightProperty());
+        dockRootPane.setAlignment(Pos.CENTER);
 
         dockRootPane.getChildren().addAll(dockAreaHighlighter, dockAnchorButton);
 
         dockPopup.getContent().addAll(dockRootPane);
-
 
 
     }
@@ -196,7 +201,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     public void dock(Node node, DockAnchor dockAnchor) {
         dock(node, dockAnchor, root);
     }
-
+/*
     public void undock(DockNode node) {
 
         DockNodeEventHandler dockNodeEventHandler = dockNodeEventFilters.get(node);
@@ -255,6 +260,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         }
     }
 
+ */
+
     private class DockNodeEventHandler implements EventHandler<DockEvent> {
 
         private Node node = null;
@@ -265,13 +272,16 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         @Override
         public void handle(DockEvent event) {
-            DockPane.this.dockNodeDrag = node;
+            DockPane.this.dockNodeTarget = node;
         }
 
     }
 
     @Override
     public void handle(DockEvent event) {
+
+        System.out.println(event.getTarget());
+        dockNodeTarget = (Node) event.getTarget();
 
         if (event.getEventType() == DockEvent.DOCK_ENTER) {
 
@@ -284,84 +294,137 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
             this.receivedEnter = false;
 
-            dockAnchorDrag = null;
-            dockAreaDrag = dockNodeDrag;
+            dockAnchor = null;
+            //dockAreaDrag = dockNodeDrag;
 
-            //Set focus css
-            if (dockAnchorButton.contains(dockAnchorButton.screenToLocal(event.getScreenX(), event.getScreenY()))) {
-                dockAnchorDrag = dockAnchorButton.getDockAnchor();
-                if (dockAnchorButton.isDockRoot()) {
-                    dockAreaDrag = root;
-                }
-                dockAnchorButton.requestFocus();
-            }
+            //left try just window at least
+            Scene scene = dockNodeTarget.getScene();
+            Window window = dockNodeTarget.getScene().getWindow();
 
-            if (dockAnchorDrag != null) {
+            Insets winInsets = new Insets(
+                    scene.getY(),
+                    window.getWidth()-scene.getWidth() - scene.getX(),
+                    window.getHeight()-scene.getHeight() - scene.getY(),
+                    scene.getX()
+            );
 
-                Point2D originToScene = dockAreaDrag.localToScene(0, 0).subtract(this.localToScene(0, 0));
-                dockAnchorButton.setDockAnchor(dockAnchorDrag);
+            if (event.getScreenX() - window.getX() - winInsets.getLeft() < 50
+                    && event.getScreenY() - window.getY() - winInsets.getTop() > 50
+                    && (window.getY() + window.getHeight() - winInsets.getBottom()) - event.getScreenY() > 50) {
 
-                dockAreaHighlighter.setVisible(true);
-                dockAreaHighlighter.relocate(originToScene.getX(), originToScene.getY());
-                if (dockAnchorDrag == DockAnchor.RIGHT) {
-                    dockAreaHighlighter.setTranslateX(dockAreaDrag.getLayoutBounds().getWidth() / 2);
-                } else {
-                    dockAreaHighlighter.setTranslateX(0);
-                }
+                dockAnchorButton.setDockAnchor(DockAnchor.LEFT);
+                dockAnchor = DockAnchor.LEFT;
 
-                if (dockAnchorDrag == DockAnchor.BOTTOM) {
-                    dockAreaHighlighter.setTranslateY(dockAreaDrag.getLayoutBounds().getHeight() / 2);
-                } else {
-                    dockAreaHighlighter.setTranslateY(0);
-                }
+            } else if ((window.getX() + window.getWidth() - winInsets.getRight() - winInsets.getLeft()) - event.getScreenX() < 50
+                    && event.getScreenY() - window.getY() - winInsets.getTop() > 50
+                    && (window.getY() + window.getHeight() - winInsets.getBottom()) - event.getScreenY() > 50) {
 
-                if (dockAnchorDrag == DockAnchor.LEFT || dockAnchorDrag == DockAnchor.RIGHT) {
-                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth() / 2);
-                } else {
-                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth());
-                }
+                dockAnchorButton.setDockAnchor(DockAnchor.RIGHT);
+                dockAnchor = DockAnchor.RIGHT;
 
-                if (dockAnchorDrag == DockAnchor.TOP || dockAnchorDrag == DockAnchor.BOTTOM) {
-                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight() / 2);
-                } else {
-                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight());
-                }
+            } else if (event.getScreenY() - window.getY() - winInsets.getTop() < 50
+                    && event.getScreenX() - window.getX() - winInsets.getLeft() > 50
+                    && (window.getX() + window.getWidth() - winInsets.getRight() - event.getScreenX() > 50)) {
+
+                dockAnchorButton.setDockAnchor(DockAnchor.TOP);
+                dockAnchor = DockAnchor.TOP;
+
+            } else if ((window.getY()) + window.getHeight() - winInsets.getTop() - winInsets.getBottom() - event.getScreenY() < 50
+                    && event.getScreenX() - window.getX() > 50
+                    && (window.getX() + window.getWidth() - winInsets.getRight() - event.getScreenX() > 50)) {
+
+                dockAnchorButton.setDockAnchor(DockAnchor.BOTTOM);
+                dockAnchor = DockAnchor.BOTTOM;
 
             } else {
-                dockAreaHighlighter.setVisible(false);
+                dockAnchor = null;
             }
 
-            if (dockNodeDrag != null) {
-                Point2D originToScreen = dockNodeDrag.localToScreen(0, 0);
 
-                double posX = originToScreen.getX() + dockNodeDrag.getLayoutBounds().getWidth() / 2
-                        - dockAreaHighlighter.getWidth() / 2;
-                double posY = originToScreen.getY() + dockNodeDrag.getLayoutBounds().getHeight() / 2
-                        - dockAreaHighlighter.getHeight() / 2;
+            dockAreaDrag = this;
+
+/*
+            if (dockAnchorButton.contains(dockAnchorButton.screenToLocal(event.getScreenX(), event.getScreenY()))) {
+                System.out.println("lolxds1");
+                dockAnchorButton.setOnAction(ev -> System.out.println("lolxds"));
+                dockAnchorButton.fire();
+            }
+
+ */
+
+            if (dockNodeTarget != null && dockAnchor != null) {
+
+                //Reset area highlight
+                dockAnchorButton.setTranslateX(0);
+                dockAnchorButton.setTranslateY(0);
+                dockAreaHighlighter.setTranslateX(0);
+                dockAreaHighlighter.setTranslateY(0);
+
+                //set highlight coord
+                if(dockAnchor == DockAnchor.RIGHT){
+
+                    dockAreaHighlighter.setTranslateX(dockAreaDrag.getLayoutBounds().getWidth() / 2);
+                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth() / 2);
+                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight());
+
+                    dockAnchorButton.setTranslateX(dockAreaDrag.getLayoutBounds().getWidth() / 2 - dockAnchorButton.getLayoutBounds().getWidth() / 2);
+
+                } else if(dockAnchor == DockAnchor.LEFT){
+
+                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth() / 2);
+                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight());
+
+                    dockAnchorButton.setTranslateX(-dockAreaDrag.getLayoutBounds().getWidth() / 2 + dockAnchorButton.getLayoutBounds().getWidth() / 2);
+
+                } else if(dockAnchor == DockAnchor.TOP){
+
+                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth());
+                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight() / 2);
+
+                    dockAnchorButton.setTranslateY(-dockAreaDrag.getLayoutBounds().getHeight() / 2 + dockAnchorButton.getLayoutBounds().getHeight() / 2);
+
+                } else {
+
+                    dockAreaHighlighter.setTranslateY(dockAreaDrag.getLayoutBounds().getHeight() / 2);
+                    dockAreaHighlighter.setWidth(dockAreaDrag.getLayoutBounds().getWidth());
+                    dockAreaHighlighter.setHeight(dockAreaDrag.getLayoutBounds().getHeight() / 2);
+
+                    dockAnchorButton.setTranslateY(dockAreaDrag.getLayoutBounds().getHeight() / 2 - dockAnchorButton.getLayoutBounds().getHeight() / 2);
+
+                }
+
+                //Upper-left corner of dragnode to local coords of dockpane
+                Point2D DragNodeToDockPane = new Point2D(this.localToScene(dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds())).getMinX(),
+                        this.localToScene(dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds())).getMinY());
+
+                double posX = DragNodeToDockPane.getX() ;
+                double posY = DragNodeToDockPane.getY();
+
+                System.out.println(event.getSceneX() + " " + event.getSceneY() + " " + posX + " " + posY);
+
 
                 if (!dockPopup.isShowing()) {
                     dockPopup.show(DockPane.this, posX, posY);
-                } else {
-                    dockPopup.setX(posX);
-                    dockPopup.setY(posY);
                 }
 
-                // set visible after moving the popup
                 dockAreaHighlighter.setVisible(true);
+
             } else {
+                dockPopup.hide();
                 dockAreaHighlighter.setVisible(false);
             }
+
+
 
         }
 
         if (event.getEventType() == DockEvent.DOCK_RELEASED && event.getContents() != null) {
-            /*
+/*
             if (dockAnchorDrag != null && dockIndicatorOverlay.isShowing()) {
                 DockNode dockNode = (DockNode) event.getContents();
                 dockNode.dock(this, dockAnchorDrag, dockAreaDrag);
             }
-
-             */
+*/
         }
 
         if ((event.getEventType() == DockEvent.DOCK_EXIT && !this.receivedEnter) || event.getEventType() == DockEvent.DOCK_RELEASED) {
@@ -373,7 +436,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     }
 
 
-    public class DockAnchorButton extends Button {
+
+    public static class DockAnchorButton extends Button {
 
         private boolean dockRoot;
         private DockAnchor dockAnchor;

@@ -1,6 +1,5 @@
 package docklib;
 
-import docklib.trash.DockTitleBar;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
@@ -362,7 +361,6 @@ public class DraggableTab extends Tab {
                 }
             }
 
-            /*
             //Dock events
             DockEvent dockEnterEvent =
                     new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
@@ -380,21 +378,21 @@ public class DraggableTab extends Tab {
                     executions++;
 
                     if (dragNode != node) {
-                        Event.fireEvent(node, dockEnterEvent.copyFor(this, node));
+                        Event.fireEvent(node, dockEnterEvent.copyFor(originTabPane, node));
 
                         if (dragNode != null) {
-                            Event.fireEvent(dragNode, dockExitEvent.copyFor(this, dragNode));
+                            Event.fireEvent(dragNode, dockExitEvent.copyFor(originTabPane, dragNode));
                         }
 
                         dragNodes.put(node.getScene().getWindow(), node);
                     }
-                    Event.fireEvent(node, dockOverEvent.copyFor(this, node));
+                    Event.fireEvent(node, dockOverEvent.copyFor(originTabPane, node));
                 }
             };
 
             this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask,
                     dockExitEvent);
-*/
+
         });
 
     }
@@ -494,7 +492,7 @@ public class DraggableTab extends Tab {
 
             }
 
-            /*
+
             DockEvent dockReleasedEvent =
                     new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_RELEASED, event.getX(),
                             event.getY(), event.getScreenX(), event.getScreenY(), null, originTabPane);
@@ -513,7 +511,7 @@ public class DraggableTab extends Tab {
             this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask, null);
 
             dragNodes.clear();
-*/
+
             // Remove temporary event handler for bug mentioned above.
             /*
             DockPane dockPane = this.getDockNode().getDockPane();
