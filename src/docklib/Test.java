@@ -1,9 +1,12 @@
 package docklib;
 
 import javafx.application.Application;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -121,11 +124,9 @@ public class Test extends Application {
                 tab44
         );
 
-
-
         hBox.getChildren().addAll(
-                draggableTabPane1,
-                draggableTabPane2
+                draggableTabPane1
+                //draggableTabPane2
                // draggableTabPane3,
                // draggableTabPane4
         );
