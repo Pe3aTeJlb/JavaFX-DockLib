@@ -1,6 +1,5 @@
 package docklib;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
@@ -80,6 +79,7 @@ public class DraggableTab extends Tab {
         originTabPane = tabPane;
         tabGroup = tabPane.getTabGroup();
         detachable = tabGroup != TabGroup.System;
+
         detached = new SimpleBooleanProperty(false);
 
         tabLabel = new Label(text);
@@ -394,7 +394,7 @@ public class DraggableTab extends Tab {
             //terminate float-stage if it is empty
             if(originTabPane.getTabs().isEmpty()){
                 if(floatStage != null) {
-                    floatStage.hide();
+                    floatStage.close();
                     floatStage.setScene(null);
                 }
             }
@@ -534,9 +534,9 @@ public class DraggableTab extends Tab {
             final Stage newFloatStage = new Stage();
             final DraggableTabPane pane = new DraggableTabPane(tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+            pane.getTabs().add(DraggableTab.this);
 
             newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
-            pane.getTabs().add(DraggableTab.this);
             pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
                 if (pane.getTabs().isEmpty() && !detached.get()) {
                     //calls when tabpane contains no tabs and have no detached floating tabs at the moment
