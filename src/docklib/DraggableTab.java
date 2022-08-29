@@ -1,5 +1,7 @@
 package docklib;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
@@ -38,10 +40,11 @@ public class DraggableTab extends Tab {
     private Stage dragStage;
     private TabGroup tabGroup;
 
+    //originTabPane refresh only when click on label or close it in purpose to provide proper behaviour while detached
     private DraggableTabPane originTabPane;
     private int originIndex;
     private Point2D dragOrigin;
-    private boolean detached;
+    private SimpleBooleanProperty detached;
     private String animDirection = "";
 
     private DraggableTabPane lastInsertPane;
@@ -77,6 +80,7 @@ public class DraggableTab extends Tab {
         originTabPane = tabPane;
         tabGroup = tabPane.getTabGroup();
         detachable = tabGroup != TabGroup.System;
+        detached = new SimpleBooleanProperty(false);
 
         tabLabel = new Label(text);
         if(iconName != null) {
@@ -90,7 +94,7 @@ public class DraggableTab extends Tab {
         dragStage.setAlwaysOnTop(true);
 
         StackPane dragStagePane = new StackPane();
-        dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
+        //dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
 
         dragText = new Label(text);
         if(iconName != null) {
@@ -100,6 +104,8 @@ public class DraggableTab extends Tab {
         StackPane.setAlignment(dragText, Pos.CENTER);
         dragStagePane.getChildren().add(dragText);
         dragStage.setScene(new Scene(dragStagePane));
+
+
 
         //Define drag events
 
@@ -118,9 +124,7 @@ public class DraggableTab extends Tab {
                 case BOTTOM:    animDirection = "-"; dragDelta = Math.abs(dragOrigin.getY() - event.getScreenY()); break;
             }
 
-            if (!detached && dragDelta > 25) {
-
-                detached = true;
+            if (!detached.get() && dragDelta > 25) {
 
                 dragStage.setWidth(dragText.getWidth() + 10);
                 dragStage.setHeight(dragText.getHeight() + 10);
@@ -134,11 +138,12 @@ public class DraggableTab extends Tab {
 
                 originIndex = this.getTabPane().getTabs().indexOf(this);
                 //delete origin tab and share drag event with tabpane (check tabLabel drag detect)
+                ((DraggableTabPane)this.getTabPane()).bindDetachedTab(detached);
+                detached.set(true);
+
                 this.getTabPane().getTabs().remove(this);
-               // if (originTabPane.getTabs().isEmpty()) originTabPane.undock();
 
             }
-
 
         });
 
@@ -168,9 +173,6 @@ public class DraggableTab extends Tab {
             originTabPane.requestFocus();
             originTabPane.startFullDrag();
         });
-
-        this.setOnCloseRequest(event -> originTabPane = (DraggableTabPane)this.getTabPane());
-        this.setOnClosed(event -> tryToUndockTabPane());
 
         this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
         this.setContent(content);
@@ -213,7 +215,7 @@ public class DraggableTab extends Tab {
             if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
-            if(!detached)
+            if(!detached.get())
                 return;
 
             dragStage.setX(event.getScreenX() - dragStage.getWidth() / 2);
@@ -342,14 +344,13 @@ public class DraggableTab extends Tab {
 
                     //terminate origin stage if it is empty
                     if(!insertData.getInsertPane().equals(originTabPane) && originTabPane.getTabs().isEmpty()){
-                        tryToUndockTabPane();
                         if(floatStage != null) {
                             floatStage.hide();
                             floatStage.setScene(null);
                         }
                     }
                     createNewFloatStage = true;
-                    detached = false;
+                    detached.set(false);
 
                     fireDockEvent(event, null);
 
@@ -358,7 +359,7 @@ public class DraggableTab extends Tab {
 
                 //undetachable tab was detached
                 if (!detachable) {
-                    detached = false;
+                    detached.set(false);
                     originTabPane.getTabs().add(originIndex, DraggableTab.this);
                     return;
                 }
@@ -377,7 +378,7 @@ public class DraggableTab extends Tab {
                     detachTab(event);
                 }
 
-                detached = false;
+                detached.set(false);
 
             }
 
@@ -392,18 +393,14 @@ public class DraggableTab extends Tab {
         if(docked){
             //terminate float-stage if it is empty
             if(originTabPane.getTabs().isEmpty()){
-                tryToUndockTabPane();
                 if(floatStage != null) {
                     floatStage.hide();
                     floatStage.setScene(null);
                 }
             }
             createNewFloatStage = true;
-            detached = false;
+            detached.set(false);
         } else {
-            if(originTabPane.getTabs().isEmpty()) {
-                tryToUndockTabPane();
-            }
             detachTab(event);
         }
 
@@ -541,12 +538,12 @@ public class DraggableTab extends Tab {
             newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
             pane.getTabs().add(DraggableTab.this);
             pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
-                if (pane.getTabs().isEmpty() && !detached) {
+                if (pane.getTabs().isEmpty() && !detached.get()) {
                     //calls when tabpane contains no tabs and have no detached floating tabs at the moment
                     newFloatStage.close();
                     newFloatStage.setScene(null);
                     createNewFloatStage = true;
-                } else if (pane.getTabs().isEmpty() && detached) {
+                } else if (pane.getTabs().isEmpty() && detached.get()) {
                     floatStage = newFloatStage;
                     createNewFloatStage = false;
                 }
@@ -572,13 +569,6 @@ public class DraggableTab extends Tab {
 
     }
 
-    private void tryToUndockTabPane(){
-
-        if(originTabPane.getTabs().isEmpty()){
-            originTabPane.undock();
-        }
-
-    }
 
 
     /* ScreenSpace intersect calculation */

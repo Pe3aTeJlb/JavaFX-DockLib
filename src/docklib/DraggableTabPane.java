@@ -1,7 +1,13 @@
 package docklib;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
 import java.util.HashSet;
@@ -17,6 +23,7 @@ public class DraggableTabPane extends TabPane {
 
     private double prefWidth, prefHeight;
     private boolean collapsed = false;
+    private BooleanProperty haveDetachedTab;
 
 
     public DraggableTabPane(){
@@ -55,8 +62,30 @@ public class DraggableTabPane extends TabPane {
         } else {
             this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
         }
+
+        //Double-listener
+        //when tabpane have no tabs and no FLOAT DETACHED tab, undock it
+        this.getTabs().addListener((ListChangeListener<Tab>) change -> {
+            if(!haveDetachedTab.get() && this.getTabs().isEmpty()){
+                undock();
+            }
+        });
+
+        haveDetachedTab = new SimpleBooleanProperty(false);
+        haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
+            if(oldVal && !newVal && this.getTabs().isEmpty()){
+                undock();
+            }
+        });
+
         tabPanes.add(this);
 
+    }
+
+    public void bindDetachedTab(SimpleBooleanProperty detachedProperty){
+        if(this.getTabs().size() == 1) {
+            haveDetachedTab.bind(detachedProperty);
+        }
     }
 
     /*
@@ -131,6 +160,8 @@ public class DraggableTabPane extends TabPane {
     }
 
     public void undock(){
+        haveDetachedTab.unbind();
+        System.out.println("undock");
         if(dockPane != null){
             dockPane.undock(this);
         }
