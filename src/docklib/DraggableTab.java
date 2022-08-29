@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -16,9 +17,11 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static docklib.DraggableTabPane.tabPanes;
 
@@ -49,8 +52,17 @@ public class DraggableTab extends Tab {
     //this means, u can detach System tab and attach it back or to another System tabPane
     private boolean detachable;
 
-    private HashMap<Window, Node> dragNodes = new HashMap<Window, Node>();
-    private Node dockNode;
+    //For docking
+    private HashMap<Window, Node> dragNodes = new HashMap<>();
+    private Window targetWindow;
+
+    public void updateOriginTabPane(DraggableTabPane draggableTabPane){
+        originTabPane = draggableTabPane;
+        tabGroup = draggableTabPane.getTabGroup();
+        if(this.getContextMenu() == null){
+
+        }
+    }
 
     public DraggableTab(String text, DraggableTabPane tabPane) {
         this(text, tabPane, null, null);
@@ -62,10 +74,9 @@ public class DraggableTab extends Tab {
 
     public DraggableTab(String text, DraggableTabPane tabPane, String iconName, Node content) {
 
-        this.tabGroup = tabPane.getTabGroup();
+        originTabPane = tabPane;
+        tabGroup = tabPane.getTabGroup();
         detachable = tabGroup != TabGroup.System;
-
-        tabPanes.add(tabPane);
 
         tabLabel = new Label(text);
         if(iconName != null) {
@@ -124,6 +135,7 @@ public class DraggableTab extends Tab {
                 originIndex = this.getTabPane().getTabs().indexOf(this);
                 //delete origin tab and share drag event with tabpane (check tabLabel drag detect)
                 this.getTabPane().getTabs().remove(this);
+               // if (originTabPane.getTabs().isEmpty()) originTabPane.undock();
 
             }
 
@@ -139,34 +151,10 @@ public class DraggableTab extends Tab {
             //Define tabPane of this tab
             originTabPane = (DraggableTabPane) this.getTabPane();
             dragOrigin = new Point2D(event.getScreenX(), event.getScreenY());
+            targetWindow = null;
 
             //hide/show system tab content
-            if(tabGroup == TabGroup.System){
-
-                if(floatStage != null) {
-
-                    if (floatStage.isShowing()) {
-                        floatStage.hide();
-                    }else{
-                        floatStage.show();
-                    }
-
-                } else {
-
-                    if(this.isSelected() || originTabPane.isCollapsed()) {
-
-                        if (originTabPane.isCollapsed()) {
-                            originTabPane.show();
-                        } else {
-                            originTabPane.collapse();
-                        }
-                    }
-
-                }
-
-            }
-
-            dockNode = null;
+            collapseSystemTab();
 
             //After detach, drag event will be continued on parent tabPane
             defineDragContinueEvent();
@@ -174,47 +162,267 @@ public class DraggableTab extends Tab {
             //Detached tab released
             defineMouseReleaseEvent();
 
-
         });
 
-        tabLabel.addEventFilter(MouseEvent.DRAG_DETECTED, event -> originTabPane.startFullDrag());
+        tabLabel.addEventFilter(MouseEvent.DRAG_DETECTED, event -> {
+            originTabPane.requestFocus();
+            originTabPane.startFullDrag();
+        });
+
+        this.setOnCloseRequest(event -> originTabPane = (DraggableTabPane)this.getTabPane());
+        this.setOnClosed(event -> tryToUndockTabPane());
 
         this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
         this.setContent(content);
 
     }
 
+    public void collapseSystemTab(){
 
+        if(tabGroup == TabGroup.System){
+
+            if(floatStage != null) {
+
+                if (floatStage.isShowing()) {
+                    floatStage.hide();
+                }else{
+                    floatStage.show();
+                }
+
+            } else {
+
+                if(this.isSelected() || originTabPane.isCollapsed()) {
+
+                    if (originTabPane.isCollapsed()) {
+                        originTabPane.show();
+                    } else {
+                        originTabPane.collapse();
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    public void defineDragContinueEvent(){
+
+        originTabPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+
+            if(event.getButton() != MouseButton.PRIMARY)
+                return;
+
+            if(!detached)
+                return;
+
+            dragStage.setX(event.getScreenX() - dragStage.getWidth() / 2);
+            dragStage.setY(event.getScreenY() - dragStage.getHeight() / 2);
+
+            //Make spread "Animation" at target tabpane while attach
+
+            Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
+            InsertData data = getInsertData(screenPoint);
+            //reset tab css in last pointed tabPane
+            if(data == null || data.getInsertPane().getTabs().isEmpty()) {
+                if(lastInsertPane != null) {
+                    for (Tab tab : lastInsertPane.getTabs()) {
+                        tab.setStyle("-fx-translate-x: 0;");
+                    }
+                }
+            }
+
+            //Create slide animation in pointed tabPane
+            if (data != null && !data.getInsertPane().getTabs().isEmpty()) {
+
+                if(tabGroup != data.getInsertPane().getTabGroup()){
+                    return;
+                }
+
+                lastInsertPane = data.insertPane;
+
+                switch (data.insertPane.getSide()){
+                    case TOP:
+                    case RIGHT:     animDirection = "";  break;
+                    case LEFT:
+                    case BOTTOM:    animDirection = "-"; break;
+                }
+
+                int index = data.getIndex();
+
+                //no anim
+                if (index == data.getInsertPane().getTabs().size()) {
+                    return;
+                }
+
+                //Anim depends on insert index
+                if (index != data.getInsertPane().getTabs().size()) {
+                    for (int i = 0; i < data.getInsertPane().getTabs().size(); i++) {
+                        if (i < index) {
+                            data.getInsertPane().getTabs().get(i).setStyle("-fx-translate-x: 0;");
+                        } else {
+                            data.getInsertPane().getTabs().get(i).setStyle("-fx-translate-x: " + animDirection + (tabLabel.getWidth()+15) + " ;");
+                        }
+                    }
+                }
+
+            } else {
+                //Dock events
+                DockEvent dockEnterEvent =
+                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
+                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+                DockEvent dockOverEvent =
+                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_OVER, event.getX(),
+                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+                DockEvent dockExitEvent =
+                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_EXIT, event.getX(),
+                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+
+                EventTask eventTask = new EventTask() {
+                    @Override
+                    public void run(Node node, Node dragNode) {
+                        executions++;
+
+                        if (dragNode != node) {
+                            Event.fireEvent(node, dockEnterEvent.copyFor(originTabPane, node));
+                            if (dragNode != null) {
+                                Event.fireEvent(dragNode, dockExitEvent.copyFor(originTabPane, dragNode));
+                            }
+                            targetWindow = node.getScene().getWindow();
+                            dragNodes.put(node.getScene().getWindow(), node);
+                        }
+                        Event.fireEvent(node, dockOverEvent.copyFor(originTabPane, node));
+                    }
+                };
+
+                this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask,
+                        dockExitEvent);
+
+            }
+
+        });
+
+    }
+
+    public void defineMouseReleaseEvent(){
+
+        originTabPane.setOnMouseReleased(event -> {
+
+            if(event.getButton() != MouseButton.PRIMARY)
+                return;
+
+            dragStage.hide();
+
+            if (!event.isStillSincePress()) {
+
+                //Insert tab into tabPane
+                Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
+                DraggableTabPane oldTabPane = originTabPane;
+                int oldIndex = originIndex;
+
+                InsertData insertData = getInsertData(screenPoint);
+
+                if (insertData != null && tabGroup == insertData.getInsertPane().getTabGroup() && originTabPane.sameProject(insertData.getInsertPane())) {
+                    int addIndex = insertData.getIndex();
+                    if(oldTabPane == insertData.getInsertPane() && oldTabPane.getTabs().size() == 1) {
+                        return;
+                    }
+                    oldTabPane.getTabs().remove(DraggableTab.this);
+                    if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
+                        //addIndex--;
+                    }
+                    if (addIndex > insertData.getInsertPane().getTabs().size()) {
+                        addIndex = insertData.getInsertPane().getTabs().size();
+                    }
+                    insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
+                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
+                    for(Tab tab: insertData.getInsertPane().getTabs()){
+                        tab.setStyle("-fx-translate-x: 0;");
+                    }
+
+                    //terminate origin stage if it is empty
+                    if(!insertData.getInsertPane().equals(originTabPane) && originTabPane.getTabs().isEmpty()){
+                        tryToUndockTabPane();
+                        if(floatStage != null) {
+                            floatStage.hide();
+                            floatStage.setScene(null);
+                        }
+                    }
+                    createNewFloatStage = true;
+                    detached = false;
+
+                    fireDockEvent(event, null);
+
+                    return;
+                }
+
+                //undetachable tab was detached
+                if (!detachable) {
+                    detached = false;
+                    originTabPane.getTabs().add(originIndex, DraggableTab.this);
+                    return;
+                }
+
+                //Or Create stage for detached tab
+                if (dragNodes.get(targetWindow) != null) {
+                    //at this moment this tab is deleted from origin tabpane but we need it reference
+                    //to check if it relate to the same project
+                    DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                    draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                    draggableTabPane.addTab(originTabPane, this);
+
+                    fireDockEvent(event, draggableTabPane);
+
+                } else {
+                    detachTab(event);
+                }
+
+                detached = false;
+
+            }
+
+        });
+
+    }
+
+    /* Dock event */
+
+    public void dockEventCallback(boolean docked, DockEvent event){
+
+        if(docked){
+            //terminate float-stage if it is empty
+            if(originTabPane.getTabs().isEmpty()){
+                tryToUndockTabPane();
+                if(floatStage != null) {
+                    floatStage.hide();
+                    floatStage.setScene(null);
+                }
+            }
+            createNewFloatStage = true;
+            detached = false;
+        } else {
+            if(originTabPane.getTabs().isEmpty()) {
+                tryToUndockTabPane();
+            }
+            detachTab(event);
+        }
+
+    }
 
     private abstract static class EventTask {
-        /**
-         * The number of times this task has been executed.
-         */
+
         protected int executions = 0;
 
-        /**
-         * Creates a default DockTitleBar with captions and dragging behavior.
-         *
-         * @param node The node that was chosen as the event target.
-         * @param dragNode The node that was last event target.
-         */
         public abstract void run(Node node, Node dragNode);
 
-        /**
-         * The number of times this task has been executed.
-         *
-         * @return The number of times this task has been executed.
-         */
         public int getExecutions() {
             return executions;
         }
 
-        /**
-         * Reset the execution count to zero.
-         */
         public void reset() {
             executions = 0;
         }
+
     }
 
     private void pickEventTarget(Point2D location, EventTask eventTask, Event explicit) {
@@ -281,227 +489,29 @@ public class DraggableTab extends Tab {
 
     }
 
-    public void defineDragContinueEvent(){
+    public void fireDockEvent(MouseEvent event, DraggableTabPane draggableTabPane){
 
-        originTabPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+        DockEvent dockReleasedEvent =
+                new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_RELEASED, event.getX(),
+                        event.getY(), event.getScreenX(), event.getScreenY(), null, draggableTabPane
+                );
 
-            if(event.getButton() != MouseButton.PRIMARY)
-                return;
-
-            if(!detached)
-                return;
-
-            dragStage.setX(event.getScreenX() - dragStage.getWidth() / 2);
-            dragStage.setY(event.getScreenY() - dragStage.getHeight() / 2);
-
-            //Make spread "Animation" at target tabpane while attach
-            tabPanes.add(originTabPane);
-
-            Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
-            InsertData data = getInsertData(screenPoint);
-            //reset tab css in last pointed tabPane
-            if(data == null || data.getInsertPane().getTabs().isEmpty()) {
-                if(lastInsertPane != null) {
-                    for (Tab tab : lastInsertPane.getTabs()) {
-                        tab.setStyle("-fx-translate-x: 0;");
-                    }
+        EventTask eventTask = new EventTask() {
+            @Override
+            public void run(Node node, Node dragNode) {
+                executions++;
+                if (dragNode != node) {
+                    Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
                 }
+                Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
             }
+        };
 
-            //Create slide animation in pointed tabPane
-            if (data != null && !data.getInsertPane().getTabs().isEmpty()) {
+        this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask, null);
 
-                if(tabGroup != data.getInsertPane().getTabGroup()){
-                    return;
-                }
+        dragNodes.clear();
 
-                lastInsertPane = data.insertPane;
-
-                switch (data.insertPane.getSide()){
-                    case TOP:
-                    case RIGHT:     animDirection = "";  break;
-                    case LEFT:
-                    case BOTTOM:    animDirection = "-"; break;
-                }
-
-                int index = data.getIndex();
-
-                //no anim
-                if (index == data.getInsertPane().getTabs().size()) {
-                    return;
-                }
-
-                //Anim depends on insert index
-                if (index != data.getInsertPane().getTabs().size()) {
-                    for (int i = 0; i < data.getInsertPane().getTabs().size(); i++) {
-                        if (i < index) {
-                            data.getInsertPane().getTabs().get(i).setStyle("-fx-translate-x: 0;");
-                        } else {
-                            data.getInsertPane().getTabs().get(i).setStyle("-fx-translate-x: " + animDirection + (tabLabel.getWidth()+15) + " ;");
-                        }
-                    }
-                }
-
-            } else {
-                //Dock events
-                DockEvent dockEnterEvent =
-                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
-                DockEvent dockOverEvent =
-                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_OVER, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
-                DockEvent dockExitEvent =
-                        new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_EXIT, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
-
-                EventTask eventTask = new EventTask() {
-                    @Override
-                    public void run(Node node, Node dragNode) {
-                        executions++;
-
-                        if (dragNode != node) {
-                            Event.fireEvent(node, dockEnterEvent.copyFor(originTabPane, node));
-                            dockNode = node;
-                            if (dragNode != null) {
-                                Event.fireEvent(dragNode, dockExitEvent.copyFor(originTabPane, dragNode));
-                            }
-
-                            dragNodes.put(node.getScene().getWindow(), node);
-                        }
-                        Event.fireEvent(node, dockOverEvent.copyFor(originTabPane, node));
-                    }
-                };
-
-                this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask,
-                        dockExitEvent);
-
-            }
-
-        });
-
-    }
-
-    public void defineMouseReleaseEvent(){
-
-        originTabPane.setOnMouseReleased(event -> {
-
-            if(event.getButton() != MouseButton.PRIMARY)
-                return;
-
-            dragStage.hide();
-
-            if (!event.isStillSincePress()) {
-
-                //Insert tab into tabPane
-                Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
-                DraggableTabPane oldTabPane = originTabPane;
-                int oldIndex = originIndex;
-                tabPanes.add(oldTabPane);
-                InsertData insertData = getInsertData(screenPoint);
-
-                if (insertData != null && tabGroup == insertData.getInsertPane().getTabGroup()) {
-                    int addIndex = insertData.getIndex();
-                    if(oldTabPane == insertData.getInsertPane() && oldTabPane.getTabs().size() == 1) {
-                        return;
-                    }
-                    oldTabPane.getTabs().remove(DraggableTab.this);
-                    if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
-                        //addIndex--;
-                    }
-                    if (addIndex > insertData.getInsertPane().getTabs().size()) {
-                        addIndex = insertData.getInsertPane().getTabs().size();
-                    }
-                    insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
-                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
-                    for(Tab tab: insertData.getInsertPane().getTabs()){
-                        tab.setStyle("-fx-translate-x: 0;");
-                    }
-
-                    //terminate origin stage if it is empty
-                    if(!insertData.getInsertPane().equals(originTabPane) && originTabPane.getTabs().isEmpty()){
-                        floatStage.hide();
-                        floatStage.setScene(null);
-                    }
-                    createNewFloatStage = true;
-                    detached = false;
-                    return;
-                }
-
-                //undetachable tab was detached
-                if (!detachable) {
-                    detached = false;
-                    originTabPane.getTabs().add(originIndex, DraggableTab.this);
-                    return;
-                }
-
-                //Or Create stage for detached tab
-                if(dockNode == null) {
-
-                    if (createNewFloatStage) {
-
-                        final Stage newFloatStage = new Stage();
-                        final DraggableTabPane pane = new DraggableTabPane(tabGroup);
-
-                        tabPanes.add(pane);
-
-                        newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
-                        pane.getTabs().add(DraggableTab.this);
-                        pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
-                            if (pane.getTabs().isEmpty() && !detached) {
-                                newFloatStage.hide();
-                                newFloatStage.setScene(null);
-                                createNewFloatStage = true;
-                            } else if (pane.getTabs().isEmpty() && detached) {
-                                floatStage = newFloatStage;
-                                createNewFloatStage = false;
-                            }
-                        });
-
-                        detached = false;
-                        newFloatStage.setScene(new Scene(pane));
-                        newFloatStage.initStyle(StageStyle.DECORATED);
-                        newFloatStage.setX(event.getScreenX());
-                        newFloatStage.setY(event.getScreenY());
-                        newFloatStage.show();
-                        pane.requestLayout();
-                        pane.requestFocus();
-
-                    } else {
-
-                        detached = false;
-                        originTabPane.getTabs().add(DraggableTab.this);
-                        floatStage.setX(event.getScreenX());
-                        floatStage.setY(event.getScreenY());
-
-                    }
-
-                } else {
-
-                    DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
-                    draggableTabPane.addTab(this);
-                    tabPanes.add(draggableTabPane);
-
-                    DockEvent dockReleasedEvent =
-                            new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_RELEASED, event.getX(),
-                                    event.getY(), event.getScreenX(), event.getScreenY(), null, draggableTabPane
-                                    );
-
-                    EventTask eventTask = new EventTask() {
-                        @Override
-                        public void run(Node node, Node dragNode) {
-                            executions++;
-                            if (dragNode != node) {
-                                Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
-                            }
-                            Event.fireEvent(node, dockReleasedEvent.copyFor(originTabPane, node));
-                        }
-                    };
-
-                    this.pickEventTarget(new Point2D(event.getScreenX(), event.getScreenY()), eventTask, null);
-
-                    dragNodes.clear();
-
-                    // Remove temporary event handler for bug mentioned above.
+        // Remove temporary event handler for bug mentioned above.
                     /*
                     DockPane dockPane = this.getDockNode().getDockPane();
                     if (dockPane != null) {
@@ -509,14 +519,69 @@ public class DraggableTab extends Tab {
                         dockPane.removeEventFilter(MouseEvent.MOUSE_RELEASED, this);
                     }*/
 
+    }
+
+
+    private void detachTab(MouseEvent event){
+        detachTab(event.getScreenX(), event.getScreenY());
+    }
+
+    private void detachTab(DockEvent event){
+        detachTab(event.getScreenX(), event.getScreenY());
+    }
+
+    private void detachTab(double screenX, double screenY){
+
+        if(createNewFloatStage) {
+
+            final Stage newFloatStage = new Stage();
+            final DraggableTabPane pane = new DraggableTabPane(tabGroup);
+            pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+
+            newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
+            pane.getTabs().add(DraggableTab.this);
+            pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+                if (pane.getTabs().isEmpty() && !detached) {
+                    //calls when tabpane contains no tabs and have no detached floating tabs at the moment
+                    newFloatStage.close();
+                    newFloatStage.setScene(null);
+                    createNewFloatStage = true;
+                } else if (pane.getTabs().isEmpty() && detached) {
+                    floatStage = newFloatStage;
+                    createNewFloatStage = false;
                 }
+            });
 
-            }
+            newFloatStage.setScene(new Scene(pane));
+            newFloatStage.initStyle(StageStyle.DECORATED);
+            newFloatStage.setX(screenX);
+            newFloatStage.setY(screenY);
+            newFloatStage.show();
+            pane.requestLayout();
+            pane.requestFocus();
 
-        });
+        } else {
+
+            //If u detached tab from float stage to free space
+            //and that stage contains only this tab, return it back and just move float stage
+            originTabPane.getTabs().add(DraggableTab.this);
+            floatStage.setX(screenX);
+            floatStage.setY(screenY);
+
+        }
 
     }
 
+    private void tryToUndockTabPane(){
+
+        if(originTabPane.getTabs().isEmpty()){
+            originTabPane.undock();
+        }
+
+    }
+
+
+    /* ScreenSpace intersect calculation */
 
     private InsertData getInsertData(Point2D screenPoint) {
 
@@ -760,6 +825,7 @@ public class DraggableTab extends Tab {
     }
 
 
+    /* Getters/Setters */
 
     public TabGroup getTabGroup(){
         return tabGroup;
@@ -783,9 +849,9 @@ public class DraggableTab extends Tab {
     }
 
 
-
     private class DraggableTabContextMenu extends ContextMenu{
 
+        private DraggableTab tab;
         private TabViewMode viewMode;
         private ChangeListener<Boolean> focusListener;
 
@@ -793,9 +859,11 @@ public class DraggableTab extends Tab {
 
             super();
 
+            this.tab = tab;
+
             switch (tabGroup){
                 case System:    populateSystemMenu(tab); break;
-                case WorkSpace: populateWorkspaceMenu(tab); break;
+                case WorkSpace: populateWorkspaceMenu(); break;
                 case None:      break;
             }
 
@@ -947,38 +1015,104 @@ public class DraggableTab extends Tab {
         }
 
 
-        public void populateWorkspaceMenu(DraggableTab tab){
+        public void populateWorkspaceMenu(){
 
-            MenuItem a = new MenuItem("Close");
-            //a.setOnAction(event -> setDockedPinned());
+            AtomicReference<DraggableTabPane> tabPaneRef = new AtomicReference<>();
 
-            MenuItem a1 = new MenuItem("Close others");
-            //a.setOnAction(event -> setDockedPinned());
+            MenuItem closeItem = new MenuItem("Close");
+            closeItem.setOnAction(event -> tabPaneRef.get().getTabs().remove(tab));
 
-            MenuItem a2 = new MenuItem("Close all");
-            // a.setOnAction(event -> setDockedPinned());
+            MenuItem closeOthersItem = new MenuItem("Close others");
+            closeOthersItem.setOnAction(event -> {
+                tabPaneRef.get().getTabs().clear();
+                tabPaneRef.get().getTabs().add(tab);
+            });
 
-            MenuItem a3 = new MenuItem("Close all to the left");
-            // a.setOnAction(event -> setDockedPinned());
+            MenuItem closeAllItems = new MenuItem("Close all");
+            closeAllItems.setOnAction(event -> tabPaneRef.get().getTabs().clear());
 
-            MenuItem a4 = new MenuItem("Close all to the right");
-            //  a.setOnAction(event -> setDockedPinned());
+            MenuItem closeToTheLeftItem = new MenuItem("Close all to the left");
+            closeToTheLeftItem.setOnAction(event -> {
+                int index = tabPaneRef.get().getTabs().indexOf(tab);
+                List<Tab> tabs = new ArrayList<>(tabPaneRef.get().getTabs().subList(index, tabPaneRef.get().getTabs().size()));
+                tabPaneRef.get().getTabs().setAll(tabs);
+            });
 
-            MenuItem a5 = new MenuItem("Split vertically");
-            //   a.setOnAction(event -> setDockedPinned());
+            MenuItem closeToTheRightItem = new MenuItem("Close all to the right");
+            closeToTheRightItem.setOnAction(event -> {
+                int index = tabPaneRef.get().getTabs().indexOf(tab);
+                List<Tab> tabs = new ArrayList<>(tabPaneRef.get().getTabs().subList(0, index + 1));
+                tabPaneRef.get().getTabs().setAll(tabs);
+            });
 
-            MenuItem a6 = new MenuItem("Split horizontally");
-            //   a.setOnAction(event -> setDockedPinned());
+            MenuItem splitVerticallyItem = new MenuItem("Split vertically");
+            splitVerticallyItem.setOnAction(event -> {
+                tabPaneRef.get().getTabs().remove(tab);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                draggableTabPane.addTab(tabPaneRef.get(), tab);
+                tabPaneRef.get().dock(draggableTabPane, DockAnchor.BOTTOM);
+            });
+
+            MenuItem splitHorizontallyItem = new MenuItem("Split horizontally");
+            splitHorizontallyItem.setOnAction(event -> {
+                tabPaneRef.get().getTabs().remove(tab);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                draggableTabPane.addTab(tabPaneRef.get(), tab);
+                tabPaneRef.get().dock(draggableTabPane, DockAnchor.RIGHT);
+            });
 
 
-            MenuItem a7 = new MenuItem("Select next tab");
-            // a.setOnAction(event -> setDockedPinned());
+            MenuItem selectNextTabItem = new MenuItem("Select next tab");
+            selectNextTabItem.setOnAction(event -> {
+                int index = tabPaneRef.get().getTabs().indexOf(tab);
+                if(index == tabPaneRef.get().getTabs().size()){
+                    System.out.println("right1");
+                    tabPaneRef.get().getSelectionModel().select(0);
+                } else {
+                    System.out.println("righ2");
+                    tabPaneRef.get().getSelectionModel().select(index + 1);
+                }
+            });
+            selectNextTabItem.setAccelerator(KeyCodeCombination.keyCombination("Alt+Right"));
 
-            MenuItem a8 = new MenuItem("Select previous tab");
-            // a.setOnAction(event -> setDockedPinned());
+            MenuItem selectPreviousTabItem = new MenuItem("Select previous tab");
+            selectPreviousTabItem.setOnAction(event -> {
+                int index = tabPaneRef.get().getTabs().indexOf(tab);
+                if(index == 0){
+                    System.out.println("left1");
+                    tabPaneRef.get().getSelectionModel().select(tabPaneRef.get().getTabs().size() - 1);
+                } else {
+                    System.out.println("left2");
+                    tabPaneRef.get().getSelectionModel().select(index - 1);
+                }
+            });
+            selectPreviousTabItem.setAccelerator(KeyCodeCombination.keyCombination("Alt+Left"));
+
+            this.setOnShowing(event ->{
+                tabPaneRef.set((DraggableTabPane) this.tab.getTabPane());
+                closeOthersItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
+                closeToTheLeftItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == 0);
+                closeToTheRightItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == tabPaneRef.get().getTabs().size()-1);
+                splitVerticallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
+                splitHorizontallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
+                selectNextTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
+                selectPreviousTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
+            });
 
             this.getItems().addAll(
-                    new SeparatorMenuItem()
+                    closeItem,
+                    closeOthersItem,
+                    closeAllItems,
+                    closeToTheLeftItem,
+                    closeToTheRightItem,
+                    new SeparatorMenuItem(),
+                    splitVerticallyItem,
+                    splitHorizontallyItem,
+                    new SeparatorMenuItem(),
+                    selectNextTabItem,
+                    selectPreviousTabItem
             );
 
         }

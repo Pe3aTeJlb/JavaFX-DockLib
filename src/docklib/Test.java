@@ -22,7 +22,7 @@ public class Test extends Application {
 
         VBox hBox = new VBox();
         hBox.setAlignment(Pos.TOP_LEFT);
-        Scene scene = new Scene(hBox, 800, 600);
+        Scene scene = new Scene(hBox, 400, 100);
 
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(scene);
@@ -149,7 +149,7 @@ public class Test extends Application {
 
         DockPane dockPane = new DockPane();
 
-        newStage.setScene(new Scene(dockPane, 800, 600));
+        newStage.setScene(new Scene(dockPane, 300, 300));
 
         newStage.show();
 
