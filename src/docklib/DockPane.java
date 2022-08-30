@@ -156,8 +156,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         if(dockAnchor == DockAnchor.CENTER) {
             if (node instanceof DraggableTabPane && neighbor instanceof DraggableTabPane) {
-                ((DraggableTabPane) neighbor).addTab((DraggableTabPane) node,
-                        (DraggableTab)((DraggableTabPane) node).getTabs().get(0));
+                ((DraggableTabPane) neighbor).addTab((DraggableTab)((DraggableTabPane) node).getTabs().get(0));
                 return;
             } else {
                 dockAnchor = DockAnchor.LEFT;

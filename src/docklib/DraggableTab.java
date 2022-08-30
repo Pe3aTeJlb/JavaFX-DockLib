@@ -58,27 +58,30 @@ public class DraggableTab extends Tab {
     private HashMap<Window, Node> dragNodes = new HashMap<>();
     private Window targetWindow;
 
-    public void updateOriginTabPane(DraggableTabPane draggableTabPane){
+    public void setTabProperties(DraggableTabPane draggableTabPane){
         originTabPane = draggableTabPane;
         tabGroup = draggableTabPane.getTabGroup();
-        if(this.getContextMenu() == null){
-
+        detachable = tabGroup != TabGroup.System;
+        if (this.getContextMenu() == null) {
+            this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
         }
     }
 
-    public DraggableTab(String text, DraggableTabPane tabPane) {
-        this(text, tabPane, null, null);
+    public DraggableTab(String text) {
+        this(text, null, null);
     }
 
-    public DraggableTab(String text, DraggableTabPane tabPane, String iconName) {
-        this(text, tabPane, iconName, null);
+    public DraggableTab(String text, String iconName) {
+        this(text, iconName, null);
     }
 
-    public DraggableTab(String text, DraggableTabPane tabPane, String iconName, Node content) {
+    public DraggableTab(String text, String iconName, Node content) {
 
+        /*
         originTabPane = tabPane;
         tabGroup = tabPane.getTabGroup();
         detachable = tabGroup != TabGroup.System;
+         */
 
         detached = new SimpleBooleanProperty(false);
 
@@ -174,7 +177,7 @@ public class DraggableTab extends Tab {
             originTabPane.startFullDrag();
         });
 
-        this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
+        //this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
         this.setContent(content);
 
     }
@@ -370,7 +373,7 @@ public class DraggableTab extends Tab {
                     //to check if it relate to the same project
                     DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                     draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-                    draggableTabPane.addTab(originTabPane, this);
+                    draggableTabPane.addTab(this);
 
                     fireDockEvent(event, draggableTabPane);
 
@@ -534,7 +537,7 @@ public class DraggableTab extends Tab {
             final Stage newFloatStage = new Stage();
             final DraggableTabPane pane = new DraggableTabPane(tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-            pane.getTabs().add(DraggableTab.this);
+            pane.addTab(this);
 
             newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
             pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
@@ -817,6 +820,10 @@ public class DraggableTab extends Tab {
 
     /* Getters/Setters */
 
+    public DraggableTabPane getOriginTabPane(){
+        return originTabPane;
+    }
+
     public TabGroup getTabGroup(){
         return tabGroup;
     }
@@ -1040,7 +1047,7 @@ public class DraggableTab extends Tab {
                 tabPaneRef.get().getTabs().remove(tab);
                 DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-                draggableTabPane.addTab(tabPaneRef.get(), tab);
+                draggableTabPane.addTab(tab);
                 tabPaneRef.get().dock(draggableTabPane, DockAnchor.BOTTOM);
             });
 
@@ -1049,7 +1056,7 @@ public class DraggableTab extends Tab {
                 tabPaneRef.get().getTabs().remove(tab);
                 DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-                draggableTabPane.addTab(tabPaneRef.get(), tab);
+                draggableTabPane.addTab(tab);
                 tabPaneRef.get().dock(draggableTabPane, DockAnchor.RIGHT);
             });
 

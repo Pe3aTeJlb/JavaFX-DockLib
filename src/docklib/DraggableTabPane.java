@@ -2,8 +2,6 @@ package docklib;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -13,6 +11,10 @@ import javafx.scene.control.TabPane;
 import java.util.HashSet;
 import java.util.Set;
 
+/*
+* Warning dont use this.getTabs().add to actually add tabs, this will break tabgroup logic
+* Use this.addTab instead
+*/
 public class DraggableTabPane extends TabPane {
 
     public static final Set<DraggableTabPane> tabPanes = new HashSet<>();
@@ -88,30 +90,32 @@ public class DraggableTabPane extends TabPane {
         }
     }
 
-    /*
     public void addTab(DraggableTab tab){
-        if(tab.getTabGroup() == tabGroup &&
-                ((DraggableTabPane)tab.getTabPane()).sameProject(this)){
-               this.getTabs().add(tab);
-        }
-    }
-*/
-
-    public void addTab(DraggableTabPane originTabPane, DraggableTab tab){
-        if(tab.getTabGroup() == tabGroup &&
-                originTabPane.sameProject(this)){
+        if(tab.getOriginTabPane() == null){
+            tab.setTabProperties(this);
             this.getTabs().add(tab);
-            //tab.updateOriginTabPane(this);
+        } else {
+            if (tab.getTabGroup() == tabGroup &&
+                    tab.getOriginTabPane().sameProject(this)) {
+                this.getTabs().add(tab);
+            }
         }
     }
 
     public void addAll(DraggableTab... tabs){
         for(DraggableTab tab : tabs){
-            //tab.updateOriginTabPane(this);
+            this.addTab(tab);
         }
-        this.getTabs().addAll(tabs);
     }
 
+
+    public TabGroup getTabGroup(){
+        return tabGroup;
+    }
+
+    public boolean isCollapsed(){
+        return collapsed;
+    }
 
     public void collapse(){
 
@@ -145,35 +149,17 @@ public class DraggableTabPane extends TabPane {
     }
 
 
+
+    public Object getProject(){
+        return project;
+    }
+
     public boolean sameProject(DraggableTabPane draggableTabPane){
         return draggableTabPane.sameProject(this.project);
     }
 
     private boolean sameProject(Object project){
         return this.project == project;
-    }
-
-    public void dock(Node node, DockAnchor dockAnchor){
-        if(dockPane != null){
-            dockPane.dock(node, dockAnchor, this);
-        }
-    }
-
-    public void undock(){
-        haveDetachedTab.unbind();
-        System.out.println("undock");
-        if(dockPane != null){
-            dockPane.undock(this);
-        }
-    }
-
-
-    public TabGroup getTabGroup(){
-        return tabGroup;
-    }
-
-    public boolean isCollapsed(){
-        return collapsed;
     }
 
 
@@ -187,6 +173,19 @@ public class DraggableTabPane extends TabPane {
 
     public DockPane getDockPane(){
         return dockPane;
+    }
+
+    public void dock(Node node, DockAnchor dockAnchor){
+        if(dockPane != null){
+            dockPane.dock(node, dockAnchor, this);
+        }
+    }
+
+    public void undock(){
+        haveDetachedTab.unbind();
+        if(dockPane != null){
+            dockPane.undock(this);
+        }
     }
 
 }
