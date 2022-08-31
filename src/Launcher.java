@@ -1,10 +1,9 @@
-import docklib.Test;
-import docklib.trash.DockFX;
+import docklib.Demo;
 
 public class Launcher {
 
     public static void main(String[] args) {
-        Test.main(args);
+        Demo.main(args);
     }
 
 }

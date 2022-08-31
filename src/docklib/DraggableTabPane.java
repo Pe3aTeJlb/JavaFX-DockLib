@@ -1,10 +1,13 @@
 package docklib;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
@@ -21,12 +24,15 @@ public class DraggableTabPane extends TabPane {
 
     private final Object project;
     private final TabGroup tabGroup;
+
     private DockPane dockPane;
+    private SplitPane split;
 
     private double prefWidth, prefHeight;
     private boolean collapsed = false;
     private BooleanProperty haveDetachedTab;
 
+    private InvalidationListener showingListener;
 
     public DraggableTabPane(){
         this(null, TabGroup.None, null);
@@ -61,6 +67,8 @@ public class DraggableTabPane extends TabPane {
         this.dockPane = dockPane;
         if(dockGroup == TabGroup.System) {
             this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+            showingListener = observable -> collapse();
+            this.widthProperty().addListener(showingListener);
         } else {
             this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
         }
@@ -90,10 +98,11 @@ public class DraggableTabPane extends TabPane {
         }
     }
 
+
     public void addTab(DraggableTab tab){
         if(tab.getOriginTabPane() == null){
-            tab.setTabProperties(this);
             this.getTabs().add(tab);
+            tab.setTabProperties(this);
         } else {
             if (tab.getTabGroup() == tabGroup &&
                     tab.getOriginTabPane().sameProject(this)) {
@@ -119,6 +128,8 @@ public class DraggableTabPane extends TabPane {
 
     public void collapse(){
 
+        this.widthProperty().removeListener(showingListener);
+
         if(collapsed)
             return;
 
@@ -126,12 +137,16 @@ public class DraggableTabPane extends TabPane {
             prefHeight = this.getPrefHeight();
             prefWidth = this.getPrefWidth();
             this.setMaxHeight(1.315 * this.getTabMinHeight());
+            this.setMinHeight(1.315 * this.getTabMinHeight());
         } else  {
             prefHeight = this.getPrefHeight();
             prefWidth = this.getPrefWidth();
             this.setMaxWidth(1.315 * this.getTabMinHeight());
+            this.setMinWidth(1.315 * this.getTabMinHeight());
         }
 
+        this.setFocused(false);
+        this.getSelectionModel().clearSelection();
         collapsed = true;
 
     }
@@ -143,6 +158,47 @@ public class DraggableTabPane extends TabPane {
 
         this.setMaxHeight(prefHeight);
         this.setMaxWidth(prefWidth);
+
+        if(isWrappedInDockPane()){
+
+            double magnitude = 0;
+            int relativeIndex = 0;
+
+            if (split.getItems().size() > 0) {
+
+                relativeIndex = split.getItems().indexOf(this);
+                boolean otherSide = false;
+                if(relativeIndex == split.getItems().size() - 1) otherSide = true;
+
+                if (split.getOrientation() == Orientation.HORIZONTAL) {
+
+                    for (Node splitItem : split.getItems()) {
+                        magnitude += splitItem.prefWidth(0);
+                    }
+
+                    if(otherSide){
+                        split.setDividerPosition(relativeIndex - 1 , 1 - this.prefWidth(0) / magnitude);
+                    } else {
+                        split.setDividerPosition(relativeIndex, this.prefWidth(0) / magnitude);
+                    }
+
+                } else {
+
+                    for (Node splitItem : split.getItems()) {
+                        magnitude += splitItem.prefHeight(0);
+                    }
+
+                    if(otherSide){
+                        split.setDividerPosition(relativeIndex - 1, 1 - this.prefHeight(0) / magnitude);
+                    } else {
+                        split.setDividerPosition(relativeIndex, this.prefHeight(0) / magnitude);
+                    }
+
+                }
+
+            }
+
+        }
 
         collapsed = false;
 
@@ -164,11 +220,12 @@ public class DraggableTabPane extends TabPane {
 
 
     public boolean isWrappedInDockPane(){
-        return dockPane != null;
+        return this.dockPane != null;
     }
 
-    public void setDockPane(DockPane dockPane){
+    public void setDockPane(DockPane dockPane, SplitPane splitPane){
         this.dockPane = dockPane;
+        this.split = splitPane;
     }
 
     public DockPane getDockPane(){
