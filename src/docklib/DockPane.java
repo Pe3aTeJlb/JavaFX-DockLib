@@ -1,8 +1,8 @@
 package docklib;
 
+import com.sun.javafx.css.StyleManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,12 +13,9 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Control;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Popup;
 import javafx.stage.Window;
@@ -35,13 +32,15 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     private Popup winDockPopup, nodeDockPopup;
     private DockAnchorButton dockAnchorButton;
-    private GridPane nodeDockGridPane;
+    private GridPane nodeDockSelector;
     private ObservableList<DockAnchorButton> gridPaneBtns;
     private Rectangle winDockAreaIndicator, nodeDockAreaIndicator;
 
     private Node dockNodeTarget;
     private boolean receivedEnter = false;
     private DockAnchor dockAnchor;
+
+    private boolean winInteractive;
 
     public static class DockAnchorButton extends Button {
 
@@ -78,9 +77,18 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     }
 
     public DockPane(){
+        this(true);
+    }
+
+    public DockPane(boolean winInteractive){
 
         super();
+
+        StyleManager.getInstance()
+                .addUserAgentStylesheet(docklib.trash.DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
         DockPane.dockPanes.add(this);
+
+        this.winInteractive = winInteractive;
 
         this.addEventHandler(DockEvent.ANY, this);
         this.addEventFilter(DockEvent.ANY, event -> {
@@ -101,7 +109,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         winDockAreaIndicator = new Rectangle();
         winDockAreaIndicator.setManaged(false);
         winDockAreaIndicator.setMouseTransparent(true);
-        winDockAreaIndicator.setFill(new Color(0.4, 0.859, 1, 0.196));
         winDockAreaIndicator.setVisible(false);
 
         dockAnchorButton = new DockAnchorButton();
@@ -129,30 +136,29 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         gridPaneBtns = FXCollections.observableArrayList(dockTopBtn, dockBottomBtn, dockLeftBtn, dockRightBtn, dockCenterBtn);
 
-        nodeDockGridPane = new GridPane();
-        nodeDockGridPane.add(dockTopBtn, 1, 0);
-        nodeDockGridPane.add(dockRightBtn, 2, 1);
-        nodeDockGridPane.add(dockBottomBtn, 1, 2);
-        nodeDockGridPane.add(dockLeftBtn, 0, 1);
-        nodeDockGridPane.add(dockCenterBtn, 1, 1);
+        nodeDockSelector = new GridPane();
+
+        nodeDockSelector.add(dockTopBtn, 1, 0);
+        nodeDockSelector.add(dockRightBtn, 2, 1);
+        nodeDockSelector.add(dockBottomBtn, 1, 2);
+        nodeDockSelector.add(dockLeftBtn, 0, 1);
+        nodeDockSelector.add(dockCenterBtn, 1, 1);
 
         nodeDockAreaIndicator = new Rectangle();
         nodeDockAreaIndicator.setManaged(false);
         nodeDockAreaIndicator.setMouseTransparent(true);
-        nodeDockAreaIndicator.setFill(new Color(0.4, 0.859, 1, 0.196));
         nodeDockAreaIndicator.setVisible(false);
 
-        nodeDockPopup.getContent().addAll(nodeDockGridPane, nodeDockAreaIndicator);
+        nodeDockPopup.getContent().addAll(nodeDockSelector, nodeDockAreaIndicator);
+
+        winDockAreaIndicator.getStyleClass().add("dock-area-indicator");
+        nodeDockAreaIndicator.getStyleClass().add("dock-area-indicator");
+        nodeDockSelector.getStyleClass().add("node-dock-selector");
 
     }
 
     //Dock to neighboring Node
     public void dock(Node node, DockAnchor dockAnchor, Node neighbor) {
-
-        //Dock center in dragtabpane = add tab to neighbor tabpane
-        if (node instanceof DraggableTabPane) {
-            ((DraggableTabPane) node).setDockPane(this);
-        }
 
         if(dockAnchor == DockAnchor.CENTER) {
             if (node instanceof DraggableTabPane && neighbor instanceof DraggableTabPane) {
@@ -167,6 +173,9 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         if (split == null) {
             split = new SplitPane();
             split.getItems().add(node);
+            if (node instanceof DraggableTabPane) {
+                ((DraggableTabPane) node).setDockPane(this, split);
+            }
             root = split;
             this.getChildren().add(root);
             return;
@@ -243,16 +252,17 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             splitItems.add(relativeIndex, node);
 
             if (splitItems.size() > 1) {
-                split.setDividerPositions(relativeIndex, 1 - 1.0/splitItems.size());
-                /*
+
+                split.setDividerPosition(relativeIndex, (relativeIndex + 1) * (1.0 / splitItems.size()));
+/*
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
-                    split.setDividerPosition(relativeIndex,
-                            node.prefWidth(0) / (magnitude + node.prefWidth(0)));
+                    split.setDividerPosition(relativeIndex -1,
+                            node.getLayoutBounds().getWidth() / (magnitude + node.getLayoutBounds().getWidth()));
                 } else {
-                    split.setDividerPosition(relativeIndex,
-                            node.prefHeight(0) / (magnitude + node.prefHeight(0)));
-                }
-                 */
+                    split.setDividerPosition(relativeIndex -1,
+                            node.getLayoutBounds().getHeight() / (magnitude + node.getLayoutBounds().getHeight()));
+                }*/
+
             }
         } else if (dockAnchor == DockAnchor.RIGHT || dockAnchor == DockAnchor.BOTTOM) {
             int relativeIndex = splitItems.size();
@@ -261,18 +271,25 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             }
 
             splitItems.add(relativeIndex, node);
+
             if (splitItems.size() > 1) {
-                split.setDividerPositions(relativeIndex - 1, 1 - 1.0/splitItems.size());
-                /*
+
+                split.setDividerPosition(relativeIndex, relativeIndex * 1.0 / splitItems.size());
+/*
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
-                    split.setDividerPosition(relativeIndex - 1,
-                            1 - node.prefWidth(0) / (magnitude + node.prefWidth(0)));
+                    split.setDividerPosition(relativeIndex,
+                            1 - node.getLayoutBounds().getWidth() / (magnitude + node.getLayoutBounds().getWidth()));
                 } else {
-                    split.setDividerPosition(relativeIndex - 1,
-                            1 - node.prefHeight(0) / (magnitude + node.prefHeight(0)));
-                }
-                 */
+                    split.setDividerPosition(relativeIndex,
+                            1 - node.getLayoutBounds().getHeight() / (magnitude + node.getLayoutBounds().getHeight()));
+                }*/
+
             }
+        }
+
+        //Dock center in dragtabpane = add tab to neighbor tabpane
+        if (node instanceof DraggableTabPane) {
+            ((DraggableTabPane) node).setDockPane(this, split);
         }
 
     }
@@ -340,6 +357,9 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     @Override
     public void handle(DockEvent event) {
 
+        if(event.getTarget() == null)
+            return;
+
         dockNodeTarget = (Node) event.getTarget();
 
         //Fine the parent like DockPane or DraggableTabPane for this target
@@ -348,6 +368,16 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                 dockNodeTarget = dockNodeTarget.getParent();
             }
             dockNodeTarget = dockNodeTarget.getParent();
+        }
+
+        //if it is TabPane check tabgroup
+
+        if(dockNodeTarget instanceof DraggableTabPane){
+            if(((DraggableTabPane)event.getContents()).getTabGroup()
+                    != ((DraggableTabPane)dockNodeTarget).getTabGroup() ||
+                    !((DraggableTabPane)event.getContents()).sameProject((DraggableTabPane)dockNodeTarget)){
+                return;
+            }
         }
 
         Scene scene = dockNodeTarget.getScene();
@@ -361,11 +391,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         );
 
         if (event.getEventType() == DockEvent.DOCK_ENTER) {
-
+/*
             if (!winDockPopup.isShowing()) {
                 Point2D topLeft = DockPane.this.localToScreen(0, 0);
                 winDockPopup.show(this, topLeft.getX(), topLeft.getY());
-            }
+            }*/
 
         } else if (event.getEventType() == DockEvent.DOCK_OVER) {
 
@@ -400,7 +430,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                         dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds()).getCenterY()
                 );
 
-                if(eventPos.distance(dockTargetNodeCenter) <  50){
+                if(eventPos.distance(dockTargetNodeCenter) <  65){
                     showNodeDockPopup(dockNodeTarget, event);
                 } else {
                     winDockPopup.hide();
@@ -413,8 +443,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         if (event.getEventType() == DockEvent.DOCK_RELEASED && event.getContents() != null) {
             //Dock to targetNode else to this pane
-            if(nodeDockPopup.isShowing() &&
-                    nodeDockGridPane.contains(nodeDockGridPane.screenToLocal(event.getScreenX(), event.getScreenY()))){
+            if(nodeDockPopup.isShowing() && dockAnchor != null &&
+                    nodeDockSelector.contains(nodeDockSelector.screenToLocal(event.getScreenX(), event.getScreenY()))){
                 this.dock(event.getContents(), dockAnchor, dockNodeTarget);
                 ((DraggableTab)((DraggableTabPane)event.getContents()).getTabs().get(0)).dockEventCallback(true, event);
             }else if(winDockPopup.isShowing() &&
@@ -441,6 +471,9 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     }
 
     public void showWinDockPopup(Node dockNodeTarget, DockAnchor dockAnchor){
+
+        if(!winInteractive)
+            return;
 
         dockAnchorButton.setDockAnchor(dockAnchor);
 
@@ -504,52 +537,73 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         for (DockAnchorButton btn : gridPaneBtns) {
             if (btn.contains(btn.screenToLocal(event.getScreenX(), event.getScreenY()))) {
                 dockAnchor = btn.getDockAnchor();
+                btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), true);
                 break;
+            }else{
+                btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), false);
             }
         }
 
-        nodeDockPopup.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
-        nodeDockPopup.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
+       // nodeDockPopup.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
+       // nodeDockPopup.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
 
-        nodeDockGridPane.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() / 2 - nodeDockGridPane.getLayoutBounds().getWidth() / 2);
-        nodeDockGridPane.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() / 2 - nodeDockGridPane.getLayoutBounds().getHeight() / 2);
+        double shitDragCountermeasure = 0.5;
+
         nodeDockAreaIndicator.setTranslateX(0);
         nodeDockAreaIndicator.setTranslateY(0);
+        nodeDockSelector.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() / 2 - nodeDockSelector.getLayoutBounds().getWidth() / 2);
+        nodeDockSelector.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() / 2 - nodeDockSelector.getLayoutBounds().getHeight() / 2);
 
         if(dockAnchor != null) {
 
             //set highlight coord
             if (dockAnchor == DockAnchor.RIGHT) {
 
-                nodeDockAreaIndicator.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() * 0.75);
+                nodeDockAreaIndicator.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() * 0.75 - shitDragCountermeasure);
+                nodeDockAreaIndicator.setTranslateY(shitDragCountermeasure);
+
                 nodeDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth() / 4);
                 nodeDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
 
             } else if (dockAnchor == DockAnchor.LEFT) {
+
+                nodeDockAreaIndicator.setTranslateX(shitDragCountermeasure);
+                nodeDockAreaIndicator.setTranslateY(shitDragCountermeasure);
 
                 nodeDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth() / 4);
                 nodeDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
 
             } else if (dockAnchor == DockAnchor.TOP) {
 
+                nodeDockAreaIndicator.setTranslateX(shitDragCountermeasure);
+                nodeDockAreaIndicator.setTranslateY(shitDragCountermeasure);
+
                 nodeDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
                 nodeDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight() / 4);
 
             } else if (dockAnchor == DockAnchor.BOTTOM) {
 
-                nodeDockAreaIndicator.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() * 0.75);
+                nodeDockAreaIndicator.setTranslateX(shitDragCountermeasure);
+                nodeDockAreaIndicator.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() * 0.75 - shitDragCountermeasure);
+
                 nodeDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
                 nodeDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight() / 4);
 
             } else {
 
+                nodeDockAreaIndicator.setTranslateX(shitDragCountermeasure);
+                nodeDockAreaIndicator.setTranslateY(shitDragCountermeasure);
+
                 nodeDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
                 nodeDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
+
 
             }
 
             nodeDockAreaIndicator.setVisible(true);
 
+        } else {
+            nodeDockAreaIndicator.setVisible(false);
         }
 
         if(!nodeDockPopup.isShowing()) {

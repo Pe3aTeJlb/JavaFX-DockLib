@@ -57,6 +57,7 @@ public class DraggableTab extends Tab {
     //For docking
     private HashMap<Window, Node> dragNodes = new HashMap<>();
     private Window targetWindow;
+    private boolean callbackReceived;
 
     public void setTabProperties(DraggableTabPane draggableTabPane){
         originTabPane = draggableTabPane;
@@ -177,7 +178,6 @@ public class DraggableTab extends Tab {
             originTabPane.startFullDrag();
         });
 
-        //this.setContextMenu(new DraggableTabContextMenu(this, tabGroup));
         this.setContent(content);
 
     }
@@ -275,13 +275,13 @@ public class DraggableTab extends Tab {
                 //Dock events
                 DockEvent dockEnterEvent =
                         new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+                                event.getY(), event.getScreenX(), event.getScreenY(), null, originTabPane);
                 DockEvent dockOverEvent =
                         new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_OVER, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+                                event.getY(), event.getScreenX(), event.getScreenY(), null, originTabPane);
                 DockEvent dockExitEvent =
                         new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_EXIT, event.getX(),
-                                event.getY(), event.getScreenX(), event.getScreenY(), null);
+                                event.getY(), event.getScreenX(), event.getScreenY(), null, originTabPane);
 
                 EventTask eventTask = new EventTask() {
                     @Override
@@ -355,7 +355,7 @@ public class DraggableTab extends Tab {
                     createNewFloatStage = true;
                     detached.set(false);
 
-                    fireDockEvent(event, null);
+                    //fireDockEvent(event, null);
 
                     return;
                 }
@@ -376,6 +376,10 @@ public class DraggableTab extends Tab {
                     draggableTabPane.addTab(this);
 
                     fireDockEvent(event, draggableTabPane);
+                    if(!callbackReceived){
+                        detachTab(event);
+                    }
+                    callbackReceived = false;
 
                 } else {
                     detachTab(event);
@@ -392,6 +396,8 @@ public class DraggableTab extends Tab {
     /* Dock event */
 
     public void dockEventCallback(boolean docked, DockEvent event){
+
+        callbackReceived = true;
 
         if(docked){
             //terminate float-stage if it is empty
@@ -427,7 +433,7 @@ public class DraggableTab extends Tab {
 
     private void pickEventTarget(Point2D location, EventTask eventTask, Event explicit) {
 
-        List<DockPane> dockPanes = DockPane.dockPanes;
+        List<DockPane> dockPanes = new ArrayList<>(DockPane.dockPanes);
 
         // fire the dock over event for the active stages
         for (DockPane dockPane : dockPanes) {
@@ -552,7 +558,9 @@ public class DraggableTab extends Tab {
                 }
             });
 
-            newFloatStage.setScene(new Scene(pane));
+            DockPane newDockPane = new DockPane();
+            newDockPane.dock(pane, DockAnchor.CENTER);
+            newFloatStage.setScene(new Scene(newDockPane));
             newFloatStage.initStyle(StageStyle.DECORATED);
             newFloatStage.setX(screenX);
             newFloatStage.setY(screenY);
@@ -571,7 +579,6 @@ public class DraggableTab extends Tab {
         }
 
     }
-
 
 
     /* ScreenSpace intersect calculation */
@@ -851,12 +858,16 @@ public class DraggableTab extends Tab {
         private DraggableTab tab;
         private TabViewMode viewMode;
         private ChangeListener<Boolean> focusListener;
+        private AtomicReference<DraggableTabPane> tabPaneRef;
+
 
         public DraggableTabContextMenu(DraggableTab tab, TabGroup tabGroup){
 
             super();
 
             this.tab = tab;
+            this.tabPaneRef = new AtomicReference<>();
+            this.tabPaneRef.set((DraggableTabPane) tab.getTabPane());
 
             switch (tabGroup){
                 case System:    populateSystemMenu(tab); break;
@@ -1014,8 +1025,6 @@ public class DraggableTab extends Tab {
 
         public void populateWorkspaceMenu(){
 
-            AtomicReference<DraggableTabPane> tabPaneRef = new AtomicReference<>();
-
             MenuItem closeItem = new MenuItem("Close");
             closeItem.setOnAction(event -> tabPaneRef.get().getTabs().remove(tab));
 
@@ -1063,26 +1072,22 @@ public class DraggableTab extends Tab {
 
             MenuItem selectNextTabItem = new MenuItem("Select next tab");
             selectNextTabItem.setOnAction(event -> {
-                int index = tabPaneRef.get().getTabs().indexOf(tab);
-                if(index == tabPaneRef.get().getTabs().size()){
-                    System.out.println("right1");
-                    tabPaneRef.get().getSelectionModel().select(0);
+                int index = tabPaneRef.get().getSelectionModel().getSelectedIndex();
+                if(index == tabPaneRef.get().getTabs().size()-1){
+                    tabPaneRef.get().getSelectionModel().selectFirst();
                 } else {
-                    System.out.println("righ2");
-                    tabPaneRef.get().getSelectionModel().select(index + 1);
+                    tabPaneRef.get().getSelectionModel().selectNext();
                 }
             });
             selectNextTabItem.setAccelerator(KeyCodeCombination.keyCombination("Alt+Right"));
 
             MenuItem selectPreviousTabItem = new MenuItem("Select previous tab");
             selectPreviousTabItem.setOnAction(event -> {
-                int index = tabPaneRef.get().getTabs().indexOf(tab);
+                int index = tabPaneRef.get().getSelectionModel().getSelectedIndex();
                 if(index == 0){
-                    System.out.println("left1");
-                    tabPaneRef.get().getSelectionModel().select(tabPaneRef.get().getTabs().size() - 1);
+                    tabPaneRef.get().getSelectionModel().selectLast();
                 } else {
-                    System.out.println("left2");
-                    tabPaneRef.get().getSelectionModel().select(index - 1);
+                    tabPaneRef.get().getSelectionModel().selectPrevious();
                 }
             });
             selectPreviousTabItem.setAccelerator(KeyCodeCombination.keyCombination("Alt+Left"));
