@@ -146,7 +146,7 @@ public class DraggableTabPane extends TabPane {
         }
 
         this.setFocused(false);
-        this.getSelectionModel().clearSelection();
+        //this.getSelectionModel().clearSelection();
         collapsed = true;
 
     }

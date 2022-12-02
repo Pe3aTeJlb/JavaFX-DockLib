@@ -85,7 +85,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         super();
 
         StyleManager.getInstance()
-                .addUserAgentStylesheet(docklib.trash.DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
+                .addUserAgentStylesheet(docklib.DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
         DockPane.dockPanes.add(this);
 
         this.winInteractive = winInteractive;

@@ -45,6 +45,7 @@ public class DraggableTab extends Tab {
     private Point2D dragOrigin;
     private SimpleBooleanProperty detached;
     private String animDirection = "";
+    private boolean selectedBeforeClick;
 
     private DraggableTabPane lastInsertPane;
 
@@ -162,14 +163,23 @@ public class DraggableTab extends Tab {
             dragOrigin = new Point2D(event.getScreenX(), event.getScreenY());
             targetWindow = null;
 
-            //hide/show system tab content
-            collapseSystemTab();
+            selectedBeforeClick = isSelected();
 
             //After detach, drag event will be continued on parent tabPane
             defineDragContinueEvent();
 
             //Detached tab released
             defineMouseReleaseEvent();
+
+        });
+
+        tabLabel.setOnMouseReleased(event -> {
+
+            if(event.getButton() != MouseButton.PRIMARY)
+                return;
+
+            //hide/show system tab content
+            collapseSystemTab();
 
         });
 
@@ -196,13 +206,10 @@ public class DraggableTab extends Tab {
 
             } else {
 
-                if(this.isSelected() || originTabPane.isCollapsed()) {
-
-                    if (originTabPane.isCollapsed()) {
-                        originTabPane.show();
-                    } else {
-                        originTabPane.collapse();
-                    }
+                if(originTabPane.isCollapsed()) {
+                    originTabPane.show();
+                } else if(selectedBeforeClick){
+                    originTabPane.collapse();
                 }
 
             }
