@@ -173,8 +173,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         if (split == null) {
             split = new SplitPane();
             split.getItems().add(node);
-            if (node instanceof DraggableTabPane) {
-                ((DraggableTabPane) node).setDockPane(this, split);
+            if (node instanceof Dockable) {
+                ((Dockable) node).setDockPane(this, split);
             }
             root = split;
             this.getChildren().add(root);
@@ -288,8 +288,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         }
 
         //Dock center in dragtabpane = add tab to neighbor tabpane
-        if (node instanceof DraggableTabPane) {
-            ((DraggableTabPane) node).setDockPane(this, split);
+        if (node instanceof Dockable) {
+            ((Dockable) node).setDockPane(this, split);
         }
 
     }

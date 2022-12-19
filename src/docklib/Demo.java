@@ -26,7 +26,7 @@ public class Demo extends Application {
         systemTabPaneLeft.setSide(Side.LEFT);
         systemTabPaneLeft.setRotateGraphic(true);
 
-        DraggableTab tab1 = new DraggableTab("System Tab 1", "icon.png", generateRandomTree());
+        DraggableTab tab1 = new DraggableTab("", "icon.png", generateRandomTree());
         DraggableTab tab2 = new DraggableTab("System Tab 2", "icon.png", new Rectangle(100, 100, Color.AQUA));
 
         systemTabPaneLeft.addAll(
@@ -61,28 +61,78 @@ public class Demo extends Application {
                 tab32
         );
 
+        DoubleSidedTabPane workspaceTabPane2 = new DoubleSidedTabPane();
+        workspaceTabPane2.setSide(Side.TOP);
+
+        DraggableTab tab41 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab42 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
+
+        workspaceTabPane2.addLeft(tab41);
+        workspaceTabPane2.addRight(tab42);
+
+        DoubleSidedTabPane workspaceTabPane3 = new DoubleSidedTabPane();
+        workspaceTabPane3.setSide(Side.BOTTOM);
+
+        DraggableTab tab411 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab421 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+
+        workspaceTabPane3.addLeft(tab411);
+        workspaceTabPane3.addRight(tab421);
+
+
+
+        DoubleSidedTabPane workspaceTabPane4 = new DoubleSidedTabPane();
+        workspaceTabPane4.setSide(Side.LEFT);
+
+        DraggableTab tab414 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab424 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+
+        workspaceTabPane4.addLeft(tab414);
+        workspaceTabPane4.addRight(tab424);
+
+
+
+        DoubleSidedTabPane workspaceTabPane5 = new DoubleSidedTabPane();
+        workspaceTabPane5.setSide(Side.RIGHT);
+
+        DraggableTab tab415 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab425 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+
+        workspaceTabPane5.addLeft(tab415);
+        workspaceTabPane5.addRight(tab425);
+
+
         DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);
 
-        DraggableTab tab41 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
-        DraggableTab tab42 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
-        DraggableTab tab43 = new DraggableTab("WorkSpace Tab 3", "icon.png", new Rectangle(100, 100, Color.ROSYBROWN));
-        DraggableTab tab44 = new DraggableTab("WorkSpace Tab 4", "icon.png", new Rectangle(100, 100, Color.ORANGE));
+        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", "icon.png", new Rectangle(100, 100, Color.ROSYBROWN));
+        DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", "icon.png", new Rectangle(100, 100, Color.ORANGE));
 
         workspaceTabPane.addAll(
-                tab41,
-                tab42,
-                tab43,
-                tab44
+                tab410,
+                tab420,
+                tab430,
+                tab440
         );
 
+
         DockPane dockPane = new DockPane(false);
+/*
+        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
         dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
-        dockPane.dock(workspaceTabPane, DockAnchor.RIGHT);
         dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
         dockPane.dock(systemTabPaneBottom, DockAnchor.BOTTOM);
+*/
+
+        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
+        dockPane.dock(workspaceTabPane4, DockAnchor.LEFT);
+        dockPane.dock(workspaceTabPane5, DockAnchor.RIGHT);
+        dockPane.dock(workspaceTabPane2, DockAnchor.TOP);
+        dockPane.dock(workspaceTabPane3, DockAnchor.BOTTOM);
 
         final Menu menu1 = new Menu("File");
         final Menu menu2 = new Menu("Options");

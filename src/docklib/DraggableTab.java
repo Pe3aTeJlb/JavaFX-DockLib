@@ -207,7 +207,7 @@ public class DraggableTab extends Tab {
             } else {
 
                 if(originTabPane.isCollapsed()) {
-                    originTabPane.show();
+                    originTabPane.expand();
                 } else if(selectedBeforeClick){
                     originTabPane.collapse();
                 }
@@ -933,7 +933,7 @@ public class DraggableTab extends Tab {
             terminateFloatStage(tab);
 
             tab.getTabPane().focusedProperty().removeListener(focusListener);
-            ((DraggableTabPane)tab.getTabPane()).show();
+            ((DraggableTabPane)tab.getTabPane()).expand();
 
             viewMode = TabViewMode.DockPinned;
 
