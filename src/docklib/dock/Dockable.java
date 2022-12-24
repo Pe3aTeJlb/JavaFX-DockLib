@@ -1,5 +1,7 @@
-package docklib;
+package docklib.dock;
 
+import docklib.dock.DockAnchor;
+import docklib.dock.DockPane;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 

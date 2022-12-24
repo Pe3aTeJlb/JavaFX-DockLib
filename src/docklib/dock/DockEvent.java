@@ -1,4 +1,4 @@
-package docklib;
+package docklib.dock;
 
 import com.sun.javafx.scene.input.InputEventUtils;
 import javafx.event.Event;

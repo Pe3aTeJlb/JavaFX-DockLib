@@ -1,5 +1,9 @@
-package docklib;
+package docklib.draggabletabpane;
 
+import docklib.utils.IconsManager;
+import docklib.dock.DockAnchor;
+import docklib.dock.DockEvent;
+import docklib.dock.DockPane;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
@@ -24,7 +28,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static docklib.DraggableTabPane.tabPanes;
+import static docklib.draggabletabpane.DraggableTabPane.tabPanes;
 
 /* !!!Warning!!!
 * This realisation doesn't use initOwner() to share window lifecycle cause then we can't minimize detached tabs,
@@ -145,6 +149,10 @@ public class DraggableTab extends Tab {
                 //delete origin tab and share drag event with tabpane (check tabLabel drag detect)
                 ((DraggableTabPane)this.getTabPane()).bindDetachedTab(detached);
                 detached.set(true);
+
+                if(!originTabPane.isCollapsed()) {
+                    collapseSystemTab();
+                }
 
                 this.getTabPane().getTabs().remove(this);
 
@@ -278,7 +286,7 @@ public class DraggableTab extends Tab {
                     }
                 }
 
-            } else {
+            } else if(tabGroup != TabGroup.System){
                 //Dock events
                 DockEvent dockEnterEvent =
                         new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),

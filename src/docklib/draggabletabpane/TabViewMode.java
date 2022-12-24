@@ -1,4 +1,4 @@
-package docklib;
+package docklib.draggabletabpane;
 
 public enum TabViewMode {
 

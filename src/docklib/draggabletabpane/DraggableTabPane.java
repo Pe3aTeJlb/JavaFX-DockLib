@@ -1,26 +1,27 @@
-package docklib;
+package docklib.draggabletabpane;
 
-import javafx.application.Platform;
+import docklib.dock.DockAnchor;
+import docklib.dock.DockPane;
+import docklib.dock.Dockable;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.TabPaneSkin;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 /*
-* Warning dont use this.getTabs().add to actually add tabs, this will break tabgroup logic
-* Use this.addTab instead
-*/
-public class DraggableTabPane extends TabPane implements Dockable{
+ * Warning dont use this.getTabs().add to actually add tabs, this will break tabgroup logic
+ * Use this.addTab instead
+ */
+public class DraggableTabPane extends TabPane implements Dockable {
 
     public static final Set<DraggableTabPane> tabPanes = new HashSet<>();
 
@@ -57,7 +58,7 @@ public class DraggableTabPane extends TabPane implements Dockable{
 
             if(collapseOnStart) {
                 layoutListener = change -> collapse();
-                skinListener = change -> ((CustomHeaderTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
+                skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
                 this.skinProperty().addListener(skinListener);
             }
 
@@ -115,7 +116,7 @@ public class DraggableTabPane extends TabPane implements Dockable{
 
     @Override protected Skin<?> createDefaultSkin() {
         if (tabGroup == TabGroup.System) {
-            return new CustomHeaderTabPaneSkin(this);
+            return new DraggableTabPaneSkin(this);
         } else {
             return new TabPaneSkin(this);
         }
@@ -156,24 +157,31 @@ public class DraggableTabPane extends TabPane implements Dockable{
 
 
 
-    private ObjectProperty<Object> project;
+    private ObjectProperty<Object> projectProperty;
 
-    public final ObjectProperty<Object> projectProperty(){return project;}
+    public final ObjectProperty<Object> projectProperty(){
+        if (this.projectProperty == null) {
+            this.projectProperty = new SimpleObjectProperty<>(this, "project", false);
+        }
+
+        return projectProperty;
+    }
 
     public void setProject(Object project){
-        this.project.set(project);
+        this.projectProperty.set(project);
     }
 
     public Object getProject(){
-        return project.get();
+        return projectProperty.get();
     }
 
     public boolean sameProject(DraggableTabPane draggableTabPane){
-        return draggableTabPane.sameProject(this.project);
+        return draggableTabPane.sameProject(this.projectProperty);
     }
 
-    private boolean sameProject(ObjectProperty<Object> project){
-        return this.project.get() == project;
+    private boolean sameProject(Object project){
+        //return projectProperty().get() == project;
+        return true;
     }
 
 
@@ -188,41 +196,22 @@ public class DraggableTabPane extends TabPane implements Dockable{
 
         if(collapseOnStart) {
             this.skinProperty().removeListener(skinListener);
-            ((CustomHeaderTabPaneSkin) this.getSkin()).getSkinHeightProperty().removeListener(layoutListener);
+            ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().removeListener(layoutListener);
         }
 
         if(isCollapsed())
             return;
-/*
-        int relativeIndex = 0;
-        int otherSideIndex = 0;
-        double divPos = 0;
-
-        if (split.getItems().size() > 0) {
-
-            relativeIndex = split.getItems().indexOf(this) == 0 ? 0 : split.getItems().indexOf(this) - 1;
-            otherSideIndex = split.getDividers().size() - relativeIndex - 1;
-            System.out.println("this "  + split.getItems().indexOf(this) + " " + relativeIndex + " " + split.getDividers().size() + " " +otherSideIndex);
-            divPos = split.getDividers().get(otherSideIndex).getPosition();
-
-            System.out.println("rel " + relativeIndex + " other " + otherSideIndex + " " + Arrays.toString(split.getDividerPositions()));
-
-        }*/
 
         if(getSide().isHorizontal()) {
-            prefExpandedSize = this.getHeight();
-            this.setMaxHeight(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
-            this.setMinHeight(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            prefExpandedSize = this.computePrefHeight(0);
+            this.setMaxHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         } else  {
-            prefExpandedSize = this.getWidth();
-            this.setMaxWidth(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
-            this.setMinWidth(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            prefExpandedSize = this.computePrefWidth(0);
+            this.setMaxWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         }
 
-        /*System.out.println(Arrays.toString(split.getDividerPositions()));
-        split.setDividerPosition(otherSideIndex, divPos);
-        System.out.println(Arrays.toString(split.getDividerPositions()));
-*/
         collapsedProperty().set(true);
 
         this.setFocused(false);
@@ -235,12 +224,12 @@ public class DraggableTabPane extends TabPane implements Dockable{
             return;
 
         if(getSide().isHorizontal()){
-            this.setMinHeight(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
-            //this.setPrefHeight(prefExpandedSize);
+            this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setPrefHeight(prefExpandedSize);
             this.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
         } else {
-            this.setMinWidth(((CustomHeaderTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
-            //this.setPrefWidth(prefExpandedSize);
+            this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setPrefWidth(prefExpandedSize);
             this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
         }
 
@@ -260,25 +249,25 @@ public class DraggableTabPane extends TabPane implements Dockable{
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
 
                     for (Node splitItem : split.getItems()) {
-                        magnitude += splitItem.prefWidth(0);
+                        magnitude += splitItem.getLayoutBounds().getWidth();
                     }
 
                     if(otherSide){
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.prefWidth(0) / magnitude);
+                        split.setDividerPosition(relativeIndex - 1, 1 - this.getPrefWidth() / magnitude);
                     } else {
-                        split.setDividerPosition(relativeIndex, this.prefWidth(0) / magnitude);
+                        split.setDividerPosition(relativeIndex, this.getPrefWidth() / magnitude);
                     }
 
                 } else {
 
                     for (Node splitItem : split.getItems()) {
-                        magnitude += splitItem.prefHeight(0);
+                        magnitude += splitItem.getLayoutBounds().getHeight();
                     }
 
                     if(otherSide){
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.prefHeight(0) / magnitude);
+                        split.setDividerPosition(relativeIndex - 1, 1 - this.getPrefHeight() / magnitude);
                     } else {
-                        split.setDividerPosition(relativeIndex, this.prefHeight(0) / magnitude);
+                        split.setDividerPosition(relativeIndex, this.getPrefHeight() / magnitude);
                     }
 
                 }
@@ -295,7 +284,7 @@ public class DraggableTabPane extends TabPane implements Dockable{
 
     public final BooleanProperty collapsedProperty() {
         if (this.collapsed == null) {
-            this.collapsed = new SimpleBooleanProperty(this, "rotateGraphic", false);
+            this.collapsed = new SimpleBooleanProperty(this, "collapsed", false);
         }
 
         return this.collapsed;

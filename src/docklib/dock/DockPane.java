@@ -1,6 +1,9 @@
-package docklib;
+package docklib.dock;
 
 import com.sun.javafx.css.StyleManager;
+import docklib.draggabletabpane.DraggableTab;
+import docklib.draggabletabpane.DraggableTabPane;
+import docklib.utils.IconsManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -26,7 +29,7 @@ import java.util.Stack;
 
 public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
-    static List<DockPane> dockPanes = new ArrayList<>();
+    public static List<DockPane> dockPanes = new ArrayList<>();
 
     private Node root;
 
@@ -85,7 +88,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         super();
 
         StyleManager.getInstance()
-                .addUserAgentStylesheet(docklib.DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
+                .addUserAgentStylesheet(DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
         DockPane.dockPanes.add(this);
 
         this.winInteractive = winInteractive;

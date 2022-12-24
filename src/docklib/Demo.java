@@ -1,5 +1,10 @@
 package docklib;
 
+import docklib.dock.DockAnchor;
+import docklib.dock.DockPane;
+import docklib.draggabletabpane.DraggableTab;
+import docklib.draggabletabpane.DraggableTabPane;
+import docklib.draggabletabpane.TabGroup;
 import javafx.application.Application;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
@@ -13,6 +18,7 @@ import javafx.stage.Stage;
 import java.util.Random;
 
 public class Demo extends Application {
+
 
     public static void main(String[] args) {
         launch(args);
@@ -66,18 +72,26 @@ public class Demo extends Application {
 
         DraggableTab tab41 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab42 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
+        DraggableTab tab43 = new DraggableTab("WorkSpace Tab 3", "icon.png", new TextArea());
+        DraggableTab tab44 = new DraggableTab("WorkSpace Tab 4", "icon.png", new TextArea());
+        DraggableTab tab45 = new DraggableTab("WorkSpace Tab 5", "icon.png", new TextArea());
+        DraggableTab tab46 = new DraggableTab("WorkSpace Tab 6", "icon.png", new TextArea());
 
-        workspaceTabPane2.addLeft(tab41);
-        workspaceTabPane2.addRight(tab42);
+        workspaceTabPane2.addLeft(tab41,tab42,tab43);
+        workspaceTabPane2.addRight(tab44, tab45, tab46);
 
         DoubleSidedTabPane workspaceTabPane3 = new DoubleSidedTabPane();
         workspaceTabPane3.setSide(Side.BOTTOM);
 
         DraggableTab tab411 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab421 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab431 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab441 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab451 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
+        DraggableTab tab461 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
 
-        workspaceTabPane3.addLeft(tab411);
-        workspaceTabPane3.addRight(tab421);
+        workspaceTabPane3.addLeft(tab411,tab421,tab431);
+        workspaceTabPane3.addRight(tab441,tab451,tab461);
 
 
 
@@ -85,7 +99,7 @@ public class Demo extends Application {
         workspaceTabPane4.setSide(Side.LEFT);
 
         DraggableTab tab414 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
-        DraggableTab tab424 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab424 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
 
         workspaceTabPane4.addLeft(tab414);
         workspaceTabPane4.addRight(tab424);
@@ -96,7 +110,7 @@ public class Demo extends Application {
         workspaceTabPane5.setSide(Side.RIGHT);
 
         DraggableTab tab415 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
-        DraggableTab tab425 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab425 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
 
         workspaceTabPane5.addLeft(tab415);
         workspaceTabPane5.addRight(tab425);
@@ -134,6 +148,11 @@ public class Demo extends Application {
         dockPane.dock(workspaceTabPane2, DockAnchor.TOP);
         dockPane.dock(workspaceTabPane3, DockAnchor.BOTTOM);
 
+/*
+        SplitPane ss = new SplitPane(workspaceTabPane4, workspaceTabPane5);
+        ss.setSkin(new SplitPaneSkin(ss));
+        dockPane.dock(ss,DockAnchor.TOP );
+*/
         final Menu menu1 = new Menu("File");
         final Menu menu2 = new Menu("Options");
         final Menu menu3 = new Menu("Help");

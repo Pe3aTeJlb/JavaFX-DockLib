@@ -1,4 +1,4 @@
-package docklib;
+package docklib.dock;
 
 public enum DockAnchor {
 
