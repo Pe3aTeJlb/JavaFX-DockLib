@@ -100,9 +100,13 @@ public class Demo extends Application {
 
         DraggableTab tab414 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab424 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
+        DraggableTab tab434 = new DraggableTab("WorkSpace Tab 3", "icon.png", new TextArea());
+        DraggableTab tab444 = new DraggableTab("WorkSpace Tab 4", "icon.png", new TextArea());
+        DraggableTab tab454 = new DraggableTab("WorkSpace Tab 5", "icon.png", new TextArea());
+        DraggableTab tab464 = new DraggableTab("WorkSpace Tab 6", "icon.png", new TextArea());
 
-        workspaceTabPane4.addLeft(tab414);
-        workspaceTabPane4.addRight(tab424);
+        workspaceTabPane4.addLeft(tab414,tab424,tab434);
+        workspaceTabPane4.addRight(tab444,tab454,tab464);
 
 
 
@@ -111,9 +115,13 @@ public class Demo extends Application {
 
         DraggableTab tab415 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab425 = new DraggableTab("WorkSpace Tab 2", "icon.png", new TextArea());
+        DraggableTab tab435 = new DraggableTab("WorkSpace Tab 3", "icon.png", new TextArea());
+        DraggableTab tab445 = new DraggableTab("WorkSpace Tab 4", "icon.png", new TextArea());
+        DraggableTab tab455 = new DraggableTab("WorkSpace Tab 5", "icon.png", new TextArea());
+        DraggableTab tab465 = new DraggableTab("WorkSpace Tab 6", "icon.png", new TextArea());
 
-        workspaceTabPane5.addLeft(tab415);
-        workspaceTabPane5.addRight(tab425);
+        workspaceTabPane5.addLeft(tab415,tab425,tab435);
+        workspaceTabPane5.addRight(tab445,tab455,tab465);
 
 
         DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);

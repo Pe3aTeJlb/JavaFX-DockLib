@@ -23,7 +23,7 @@
  * questions.
  */
 
-package docklib;
+package docklib.draggabletabpane;
 
 import com.sun.javafx.scene.control.LambdaMultiplePropertyChangeListenerHandler;
 import com.sun.javafx.scene.control.Properties;
@@ -87,6 +87,7 @@ import javafx.scene.input.SwipeEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
@@ -106,7 +107,7 @@ import static com.sun.javafx.scene.control.skin.resources.ControlResources.getSt
  * @see TabPane
  * @since 9
  */
-public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
+public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> {
 
     /***************************************************************************
      *                                                                         *
@@ -155,6 +156,13 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
     private final TabPaneBehavior behavior;
     private NodeOrientation nodeOrientation;
 
+    private boolean alternativeContentLayout = false;
+    private boolean alternativeHeaderLayout = false;
+    private boolean leftPart = true;
+    private double alternativeSize;
+    private double xDash, yDash;
+    private double alternativeHeaderSize;
+    private double alternativeMultiplier;
 
     /***************************************************************************
      *                                                                         *
@@ -170,11 +178,11 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
      * @param control The control that this skin should be installed onto.
      */
 
-    public CustomHeaderTabPaneSkin(DraggableTabPane control) {
+    public DraggableTabPaneSkin(DraggableTabPane control) {
         this(control, NodeOrientation.LEFT_TO_RIGHT);
     }
 
-    public CustomHeaderTabPaneSkin(DraggableTabPane control, NodeOrientation nodeOrientation) {
+    public DraggableTabPaneSkin(DraggableTabPane control, NodeOrientation nodeOrientation) {
         super(control);
 
         this.nodeOrientation = nodeOrientation;
@@ -195,9 +203,11 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
         tabHeaderArea = new TabHeaderArea();
         tabHeaderArea.setClip(tabHeaderAreaClipRect);
         getChildren().add(tabHeaderArea);
+        /*
         if (getSkinnable().getTabs().size() == 0) {
             tabHeaderArea.setVisible(false);
-        }
+        }*/
+        getSkinnable().setOnMousePressed(event -> System.out.println(event.getTarget()));
 
         initializeTabListener();
 
@@ -243,7 +253,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
         }
 
         @Override public Object getBean() {
-            return CustomHeaderTabPaneSkin.this;
+            return DraggableTabPaneSkin.this;
         }
 
         @Override public String getName() {
@@ -257,7 +267,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
         }
 
         @Override public Object getBean() {
-            return CustomHeaderTabPaneSkin.this;
+            return DraggableTabPaneSkin.this;
         }
 
         @Override public String getName() {
@@ -349,13 +359,31 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             tabHeaderArea.getTransforms().clear();
             tabHeaderArea.getTransforms().add(new Rotate(getRotation(Side.TOP)));
         } else if (tabPosition == Side.BOTTOM) {
-            tabHeaderArea.resize(w, headerHeight);
-            tabHeaderArea.relocate(w + leftInset, tabsStartY - headerHeight);
+            if(alternativeHeaderSize != 0){
+                tabHeaderArea.resize(alternativeHeaderSize, headerHeight);
+                if (leftPart) {
+                    tabHeaderArea.relocate(alternativeHeaderSize + leftInset, tabsStartY - headerHeight);
+                } else {
+                    tabHeaderArea.relocate(w + leftInset, tabsStartY - headerHeight);
+                }
+            }else {
+                tabHeaderArea.resize(w, headerHeight);
+                tabHeaderArea.relocate(w + leftInset, tabsStartY - headerHeight);
+            }
             tabHeaderArea.getTransforms().clear();
             tabHeaderArea.getTransforms().add(new Rotate(getRotation(Side.BOTTOM), 0, headerHeight));
         } else if (tabPosition == Side.LEFT) {
-            tabHeaderArea.resize(h, headerHeight);
-            tabHeaderArea.relocate(tabsStartX + headerHeight, h - headerHeight + topInset);
+            if(alternativeHeaderSize != 0){
+                tabHeaderArea.resize(alternativeHeaderSize, headerHeight);
+                if (leftPart) {
+                    tabHeaderArea.relocate(tabsStartX + headerHeight, alternativeHeaderSize - headerHeight + topInset);
+                } else {
+                    tabHeaderArea.relocate(tabsStartX + headerHeight, h - headerHeight + topInset);
+                }
+            }else {
+                tabHeaderArea.resize(h, headerHeight);
+                tabHeaderArea.relocate(tabsStartX + headerHeight, h - headerHeight + topInset);
+            }
             tabHeaderArea.getTransforms().clear();
             tabHeaderArea.getTransforms().add(new Rotate(getRotation(Side.LEFT), 0, headerHeight));
         } else if (tabPosition == Side.RIGHT) {
@@ -367,10 +395,14 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
 
         tabHeaderAreaClipRect.setX(0);
         tabHeaderAreaClipRect.setY(0);
-        if (isHorizontal()) {
-            tabHeaderAreaClipRect.setWidth(w);
+        if(alternativeHeaderSize != 0){
+            tabHeaderAreaClipRect.setWidth(alternativeHeaderSize);
         } else {
-            tabHeaderAreaClipRect.setWidth(h);
+            if (isHorizontal()) {
+                tabHeaderAreaClipRect.setWidth(w);
+            } else {
+                tabHeaderAreaClipRect.setWidth(h);
+            }
         }
         tabHeaderAreaClipRect.setHeight(headerHeight);
 
@@ -411,27 +443,128 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             }
         }
 
+
         double contentWidth = w - (isHorizontal() ? 0 : headerHeight);
-        double contentHeight = h - (isHorizontal() ? headerHeight: 0);
+        double contentHeight = h - (isHorizontal() ? headerHeight : 0);
 
-        for (int i = 0, max = tabContentRegions.size(); i < max; i++) {
-            TabContentRegion tabContent = tabContentRegions.get(i);
+        if(alternativeContentLayout){
+            if(tabPosition.isHorizontal()){
 
-            tabContent.setAlignment(Pos.TOP_LEFT);
-            if (tabContent.getClip() != null) {
-                ((Rectangle)tabContent.getClip()).setWidth(contentWidth);
-                ((Rectangle)tabContent.getClip()).setHeight(contentHeight);
+                for (int i = 0, max = tabContentRegions.size(); i < max; i++) {
+
+                    TabContentRegion tabContent = tabContentRegions.get(i);
+                    if(alternativeSize != 0) {
+                        if (alternativeSize > w) {
+                            clipRect.setWidth(alternativeSize);
+                            if(!leftPart) {
+                                contentStartX = w - alternativeSize;
+                                clipRect.relocate(contentStartX, 0);
+                                xDash = contentStartX;
+                            }
+                            //clipRect.relocate(0, headerHeight);
+                        } else {
+                            if(!leftPart) {
+                                contentStartX = w - alternativeSize;
+                            }
+                        }
+                    }
+
+                    tabContent.setAlignment(Pos.TOP_LEFT);
+                    if (tabContent.getClip() != null) {
+                        ((Rectangle) tabContent.getClip()).setWidth(alternativeSize);
+                        ((Rectangle) tabContent.getClip()).setHeight(contentHeight);
+                    }
+
+                    // we need to size all tabs, even if they aren't visible. For example,
+                    // see RT-29167
+                    tabContent.resize(alternativeSize, contentHeight);
+                    tabContent.relocate(contentStartX, contentStartY);
+                }
+
+            } else {
+
+                for (int i = 0, max = tabContentRegions.size(); i < max; i++) {
+
+                    TabContentRegion tabContent = tabContentRegions.get(i);
+
+                    if(alternativeSize != 0) {
+                        if (alternativeSize > h) {
+                            clipRect.setHeight(alternativeSize);
+                            if(!leftPart) {
+                                contentStartY = h - alternativeSize;
+                                clipRect.relocate(0, contentStartY);
+                                yDash = contentStartY;
+                            }
+                        } else {
+                            if(!leftPart) {
+                                contentStartY = h - alternativeSize;
+                            }
+                        }
+                    }
+
+                    tabContent.setAlignment(Pos.TOP_LEFT);
+                    if (tabContent.getClip() != null) {
+                        ((Rectangle) tabContent.getClip()).setWidth(contentWidth);
+                        ((Rectangle) tabContent.getClip()).setHeight(alternativeSize);
+                    }
+
+                    // we need to size all tabs, even if they aren't visible. For example,
+                    // see RT-29167
+                    tabContent.resize(contentWidth, alternativeSize);
+                    tabContent.relocate(contentStartX, contentStartY);
+                }
+
             }
 
-            // we need to size all tabs, even if they aren't visible. For example,
-            // see RT-29167
-            tabContent.resize(contentWidth, contentHeight);
-            tabContent.relocate(contentStartX, contentStartY);
+
+        } else {
+
+            for (int i = 0, max = tabContentRegions.size(); i < max; i++) {
+                TabContentRegion tabContent = tabContentRegions.get(i);
+
+                tabContent.setAlignment(Pos.TOP_LEFT);
+                if (tabContent.getClip() != null) {
+                    ((Rectangle) tabContent.getClip()).setWidth(contentWidth);
+                    ((Rectangle) tabContent.getClip()).setHeight(contentHeight);
+                }
+
+                // we need to size all tabs, even if they aren't visible. For example,
+                // see RT-29167
+                tabContent.resize(contentWidth, contentHeight);
+                tabContent.relocate(contentStartX, contentStartY);
+            }
+
         }
 
     }
 
+    public void setLeftPart(boolean val){
+        leftPart = val;
+    }
 
+    public void setAlternativeContentLayout(boolean val1){
+        alternativeContentLayout = val1;
+    }
+
+    public void setAlternativeSize(double size){
+        alternativeSize = size;
+        getSkinnable().requestLayout();
+    }
+
+    public void setAlternativeHeaderSize(double size){
+        alternativeHeaderSize = size;
+    }
+
+    public void toDefault(){
+        clipRect.relocate(-xDash, -yDash);
+        xDash = 0;
+        yDash = 0;
+        getSkinnable().requestLayout();
+    }
+
+    public void setAlternativeMultiplier(double var){
+        alternativeMultiplier = var;
+    }
 
     /***************************************************************************
      *                                                                         *
@@ -493,8 +626,10 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
 
                     tabHeaderArea.removeTab(tab);
                     tabHeaderArea.requestLayout();
-                    if (getSkinnable().getTabs().isEmpty()) {
-                        tabHeaderArea.setVisible(false);
+
+                    if (getSkinnable().getTabs().isEmpty() && !getSkinnable().isCollapsed()) {
+                        //tabHeaderArea.setVisible(false);
+                        getSkinnable().collapse();
                     }
                 };
 
@@ -717,7 +852,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             }
 
             @Override public StyleableProperty<TabAnimation> getStyleableProperty(TabPane node) {
-                CustomHeaderTabPaneSkin skin = (CustomHeaderTabPaneSkin) node.getSkin();
+                DraggableTabPaneSkin skin = (DraggableTabPaneSkin) node.getSkin();
                 return (StyleableProperty<TabAnimation>)(WritableValue<TabAnimation>)skin.openTabAnimation;
             }
         };
@@ -731,7 +866,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             }
 
             @Override public StyleableProperty<TabAnimation> getStyleableProperty(TabPane node) {
-                CustomHeaderTabPaneSkin skin = (CustomHeaderTabPaneSkin) node.getSkin();
+                DraggableTabPaneSkin skin = (DraggableTabPaneSkin) node.getSkin();
                 return (StyleableProperty<TabAnimation>)(WritableValue<TabAnimation>)skin.closeTabAnimation;
             }
         };
@@ -779,7 +914,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
      **************************************************************************/
     class TabHeaderArea extends StackPane {
         private Rectangle headerClip;
-        private StackPane headersRegion;
+        public StackPane headersRegion;
         private StackPane headerBackground;
         private TabControlButtons controlButtons;
 
@@ -870,6 +1005,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
 
             headerBackground = new StackPane();
             headerBackground.getStyleClass().setAll("tab-header-background");
+           // headerBackground.setStyle("-fx-background-color:#FF0000;");
 
             int i = 0;
             for (Tab tab: tabPane.getTabs()) {
@@ -894,11 +1030,13 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
                     default:
                     case TOP:
                     case BOTTOM:
-                        setScrollOffset(scrollOffset + e.getDeltaY());
-                        break;
                     case LEFT:
                     case RIGHT:
-                        setScrollOffset(scrollOffset - e.getDeltaY());
+                        if (leftPart) {
+                            setScrollOffset(scrollOffset + e.getDeltaY());
+                        } else {
+                            setScrollOffset(scrollOffset - e.getDeltaY());
+                        }
                         break;
                 }
 
@@ -933,7 +1071,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
                 shadowRadius = shadow.getRadius();
             }
 
-            maxWidth = snapSize(getWidth()) - controlButtonPrefWidth - clipOffset;
+            maxWidth = snapSize(tabHeaderAreaClipRect.getWidth()) - controlButtonPrefWidth - clipOffset;
             if (tabPosition.equals(Side.LEFT) || tabPosition.equals(Side.BOTTOM)) {
                 if (headersPrefWidth < maxWidth) {
                     clipWidth = headersPrefWidth + shadowRadius;
@@ -942,13 +1080,14 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
                     clipWidth = maxWidth + shadowRadius;
                 }
                 clipHeight = headersPrefHeight;
+                if(clipHeight == 0) clipHeight = tabHeaderAreaClipRect.getHeight();
             } else {
                 // If x = 0 the header region's drop shadow is clipped.
                 x = -shadowRadius;
                 clipWidth = (headersPrefWidth < maxWidth ? headersPrefWidth : maxWidth) + shadowRadius;
                 clipHeight = headersPrefHeight;
+                if(clipHeight == 0) clipHeight = tabHeaderAreaClipRect.getHeight();
             }
-
             headerClip.setX(x);
             headerClip.setY(y);
             headerClip.setWidth(clipWidth);
@@ -981,7 +1120,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             double headerPrefWidth = snapSize(headersRegion.prefWidth(-1));
             double controlTabWidth = snapSize(controlButtons.prefWidth(-1));
             double visibleWidth = headerPrefWidth + controlTabWidth + firstTabIndent() + SPACER;
-            return visibleWidth < getWidth();
+            return visibleWidth < tabHeaderAreaClipRect.getWidth();
         }
 
         private void ensureSelectedTabIsVisible() {
@@ -1029,7 +1168,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
 
         private void setScrollOffset(double newScrollOffset) {
             // work out the visible width of the tab header
-            double tabPaneWidth = snapSize(isHorizontal() ? getSkinnable().getWidth() : getSkinnable().getHeight());
+            double tabPaneWidth = snapSize(tabHeaderAreaClipRect.getWidth());
             double controlTabWidth = snapSize(controlButtons.getWidth());
             double visibleWidth = tabPaneWidth - controlTabWidth - firstTabIndent() - SPACER;
 
@@ -1105,13 +1244,15 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             final double bottomInset = snappedBottomInset();
             double w = snapSize(getWidth()) - (isHorizontal() ?
                     leftInset + rightInset : topInset + bottomInset);
+            double ww = snapSize(tabHeaderAreaClipRect.getWidth()) - (isHorizontal() ?
+                    leftInset + rightInset : topInset + bottomInset);
             double h = snapSize(getHeight()) - (isHorizontal() ?
                     topInset + bottomInset : leftInset + rightInset);
             double tabBackgroundHeight = snapSize(prefHeight(-1));
             double headersPrefWidth = snapSize(headersRegion.prefWidth(-1));
             double headersPrefHeight = snapSize(headersRegion.prefHeight(-1));
 
-            controlButtons.showTabsMenu(! tabsFit());
+            controlButtons.showTabsMenu(!tabsFit());
 
             updateHeaderClip();
             headersRegion.requestLayout();
@@ -1140,12 +1281,12 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             if (tabPosition.equals(Side.TOP)) {
                 startX = leftInset;
                 startY = tabBackgroundHeight - headersPrefHeight - bottomInset;
-                controlStartX = w - btnWidth + leftInset;
+                controlStartX = ww - btnWidth + leftInset;
                 controlStartY = snapSize(getHeight()) - btnHeight - bottomInset;
             } else if (tabPosition.equals(Side.RIGHT)) {
                 startX = topInset;
                 startY = tabBackgroundHeight - headersPrefHeight - leftInset;
-                controlStartX = w - btnWidth + topInset;
+                controlStartX = ww - btnWidth + topInset;
                 controlStartY = snapSize(getHeight()) - btnHeight - leftInset;
             } else if (tabPosition.equals(Side.BOTTOM)) {
                 startX = snapSize(getWidth()) - headersPrefWidth - leftInset;
@@ -1186,6 +1327,10 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
 
     public ReadOnlyDoubleProperty getSkinHeightProperty(){
         return tabHeaderAreaClipRect.heightProperty();
+    }
+
+    public void setHeaderOrientation(NodeOrientation nodeOrientation){
+        tabHeaderArea.setNodeOrientation(nodeOrientation);
     }
 
     /**************************************************************************
@@ -1366,6 +1511,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             inner.getStyleClass().add("tab-container");
             inner.setRotate(getSkinnable().getSide().equals(Side.BOTTOM) ? 180.0F : 0.0F);
             inner.getChildren().addAll(label, closeBtn, focusIndicator);
+            inner.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
 
             getChildren().addAll(inner);
 
@@ -1767,6 +1913,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
             inner.getChildren().add(downArrowBtn);
 
             getChildren().add(inner);
+            this.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
 
             tabPane.sideProperty().addListener(valueModel -> {
                 Side tabPosition = getSkinnable().getSide();
@@ -1901,7 +2048,7 @@ public class CustomHeaderTabPaneSkin extends SkinBase<DraggableTabPane> {
                 new WeakInvalidationListener(disableListener);
 
         public TabMenuItem(final Tab tab) {
-            super(tab.getText(), CustomHeaderTabPaneSkin.clone(tab.getGraphic()));
+            super(tab.getText(), DraggableTabPaneSkin.clone(tab.getGraphic()));
             this.tab = tab;
             setDisable(tab.isDisable());
             tab.disableProperty().addListener(weakDisableListener);

@@ -1,5 +1,12 @@
 package docklib;
 
+import docklib.dock.DockAnchor;
+import docklib.dock.DockPane;
+import docklib.dock.Dockable;
+import docklib.draggabletabpane.DraggableTab;
+import docklib.draggabletabpane.DraggableTabPane;
+import docklib.draggabletabpane.DraggableTabPaneSkin;
+import docklib.draggabletabpane.TabGroup;
 import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.Node;
@@ -7,7 +14,7 @@ import javafx.scene.control.*;
 
 import java.util.Arrays;
 
-public class DoubleSidedTabPane extends Control implements Dockable{
+public class DoubleSidedTabPane extends Control implements Dockable {
 
     private DraggableTabPane leftTabPane;
     private DraggableTabPane rightTabPane;
@@ -27,13 +34,11 @@ public class DoubleSidedTabPane extends Control implements Dockable{
         setSelectionModel(leftTabPane.getSelectionModel());
 
         leftTabPane.collapsedProperty().addListener(change -> {
-
             if(leftTabPane.isCollapsed()) {
                 collapse();
             } else {
                 show();
             }
-
         });
 
         rightTabPane.collapsedProperty().addListener(change -> {
@@ -62,36 +67,17 @@ public class DoubleSidedTabPane extends Control implements Dockable{
 
         if(leftTabPane.isCollapsed() && rightTabPane.isCollapsed()) {
 
-            int relativeIndex = 0;
-            int otherSideIndex = 0;
-            double divPos = 0;
-
-            if (split.getItems().size() > 0) {
-
-                relativeIndex = split.getItems().indexOf(this) == 0 ? 0 : split.getItems().indexOf(this) - 1;
-                otherSideIndex = split.getDividers().size() - relativeIndex - 1;
-                System.out.println("this "  + split.getItems().indexOf(this) + " " + relativeIndex + " " + split.getDividers().size() + " " +otherSideIndex);
-                divPos = split.getDividers().get(otherSideIndex).getPosition();
-
-                System.out.println("rel " + relativeIndex + " other " + otherSideIndex + " " + Arrays.toString(split.getDividerPositions()));
-
-            }
-
             if (getSide().isHorizontal()) {
 
-                this.setMinHeight(((CustomHeaderTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
-                this.setMaxHeight(((CustomHeaderTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
+                this.setMinHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
+                this.setMaxHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
 
             } else {
 
-                this.setMinWidth(((CustomHeaderTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
-                this.setMaxWidth(((CustomHeaderTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
+                this.setMinWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
+                this.setMaxWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
 
             }
-
-            System.out.println(Arrays.toString(split.getDividerPositions()));
-            split.setDividerPosition(otherSideIndex, divPos);
-            System.out.println(Arrays.toString(split.getDividerPositions()));
 
         }
 
@@ -135,7 +121,6 @@ public class DoubleSidedTabPane extends Control implements Dockable{
                         magnitude += splitItem.prefHeight(0);
                     }
 
-                    System.out.println(Arrays.toString(split.getDividerPositions()));
                     if (otherSide) {
                         split.setDividerPosition(relativeIndex - 1, 1 - this.prefHeight(0) / magnitude);
                     } else {
@@ -143,8 +128,6 @@ public class DoubleSidedTabPane extends Control implements Dockable{
                     }
 
                 }
-
-                System.out.println(Arrays.toString(split.getDividerPositions()));
 
             }
 
