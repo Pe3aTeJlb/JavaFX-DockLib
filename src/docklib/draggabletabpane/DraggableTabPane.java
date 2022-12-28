@@ -5,10 +5,7 @@ import docklib.dock.DockPane;
 import docklib.dock.Dockable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -69,18 +66,24 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
         //Double-listener
         //when tabpane have no tabs and no FLOAT DETACHED tab, undock it
+        haveDetachedTab = new SimpleBooleanProperty(false);
+        /*
         this.getTabs().addListener((ListChangeListener<Tab>) change -> {
             if(!haveDetachedTab.get() && this.getTabs().isEmpty()){
                 undock();
             }
         });
 
-        haveDetachedTab = new SimpleBooleanProperty(false);
+
         haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
             if(oldVal && !newVal && this.getTabs().isEmpty()){
                 undock();
             }
         });
+
+         */
+
+        this.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
 
         tabPanes.add(this);
 
@@ -290,5 +293,19 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
         return this.collapsed;
     }
+
+/*
+    private StringProperty tabAnimation;
+
+    public void setTabAnimation(String val){
+        tabAnimationProperty().set(val);
+    }
+
+    public final StringProperty tabAnimationProperty(){
+        if (this.tabAnimation == null) {
+            this.tabAnimation = new SimpleStringProperty(this, "tabAnimation", "-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE");
+        }
+        return this.tabAnimation;
+    }*/
 
 }

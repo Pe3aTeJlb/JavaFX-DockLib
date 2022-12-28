@@ -342,9 +342,11 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
         DraggableTabPane tabPane = getSkinnable();
         Side tabPosition = tabPane.getSide();
 
-        double headerHeight = tabPosition.isHorizontal()
-                ? snapSizeY(tabHeaderArea.prefHeight(-1))
-                : snapSizeX(tabHeaderArea.prefHeight(-1));
+        double headerHeight = getSkinnable().getTabs().isEmpty()
+                ? tabHeaderArea.headerBackground.getHeight()
+                : tabPosition.isHorizontal()
+                    ? snapSizeY(tabHeaderArea.prefHeight(-1))
+                    : snapSizeX(tabHeaderArea.prefHeight(-1));
         double tabsStartX = tabPosition.equals(Side.RIGHT)? x + w - headerHeight : x;
         double tabsStartY = tabPosition.equals(Side.BOTTOM)? y + h - headerHeight : y;
 
@@ -446,6 +448,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
         double contentHeight = h - (isHorizontal() ? headerHeight : 0);
 
         if(alternativeContentLayout){
+
             if(tabPosition.isHorizontal()){
 
                 for (int i = 0, max = tabContentRegions.size(); i < max; i++) {
@@ -459,7 +462,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
                                 clipRect.relocate(contentStartX, 0);
                                 xDash = contentStartX;
                             }
-                            //clipRect.relocate(0, headerHeight);
                         } else {
                             if(!leftPart) {
                                 contentStartX = w - alternativeSize;
@@ -513,7 +515,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
                 }
 
             }
-
 
         } else {
 
@@ -1000,7 +1001,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             headersRegion.getStyleClass().setAll("headers-region");
             headersRegion.setClip(headerClip);
             setupReordering(headersRegion);
-            headersRegion.setStyle("-fx-background-color: #FF0000;");
 
             headerBackground = new StackPane();
             headerBackground.getStyleClass().setAll("tab-header-background");
@@ -1054,10 +1054,10 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             double controlButtonPrefWidth = snapSize(controlButtons.prefWidth(-1));
 
             measureClosingTabs = true;
-            double headersPrefWidth = snapSize(headersRegion.prefWidth(-1));
+            double headersPrefWidth = snapSize(tabHeaderAreaClipRect.getWidth());
             measureClosingTabs = false;
 
-            double headersPrefHeight = snapSize(headersRegion.prefHeight(-1));
+            double headersPrefHeight = snapSize(tabHeaderAreaClipRect.getHeight());
 
             // Add the spacer if isShowTabsMenu is true.
             if (controlButtonPrefWidth > 0) {
@@ -1249,7 +1249,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             double h = snapSize(getHeight()) - (isHorizontal() ?
                     topInset + bottomInset : leftInset + rightInset);
             double tabBackgroundHeight = snapSize(prefHeight(-1));
-            double headersPrefWidth = snapSize(headersRegion.prefWidth(-1));
+            double headersPrefWidth = snapSize(tabHeaderAreaClipRect.getWidth());
             double headersPrefHeight = snapSize(headersRegion.prefHeight(-1));
 
             controlButtons.showTabsMenu(!tabsFit());
@@ -1531,7 +1531,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
                 requestLayout();
             });
             listener.registerChangeListener(tab.selectedProperty(), e -> {
-                System.out.println("tab select changed");
                 pseudoClassStateChanged(SELECTED_PSEUDOCLASS_STATE, tab.isSelected());
                 // Need to request a layout pass for inner because if the width
                 // and height didn't not change the label or close button may have

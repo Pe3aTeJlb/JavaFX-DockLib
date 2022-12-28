@@ -342,7 +342,8 @@ public class DraggableTab extends Tab {
 
                 InsertData insertData = getInsertData(screenPoint);
 
-                if (insertData != null && tabGroup == insertData.getInsertPane().getTabGroup() && originTabPane.sameProject(insertData.getInsertPane())) {
+                if (insertData != null && tabGroup == insertData.getInsertPane().getTabGroup()
+                        && originTabPane.sameProject(insertData.getInsertPane())) {
                     int addIndex = insertData.getIndex();
                     if(oldTabPane == insertData.getInsertPane() && oldTabPane.getTabs().size() == 1) {
                         return;
@@ -354,7 +355,9 @@ public class DraggableTab extends Tab {
                     if (addIndex > insertData.getInsertPane().getTabs().size()) {
                         addIndex = insertData.getInsertPane().getTabs().size();
                     }
+                    System.out.println("smt was added");
                     insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
+                    System.out.println(insertData.getInsertPane().getTabs());
                     insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
                     for(Tab tab: insertData.getInsertPane().getTabs()){
                         tab.setStyle("-fx-translate-x: 0;");
@@ -611,9 +614,7 @@ public class DraggableTab extends Tab {
             }
 
             Rectangle2D headerScreenBounds = getAbsoluteRect(tabPane);
-            System.out.println(screenPoint);
             if(headerScreenBounds.contains(screenPoint)) {
-                System.out.println(headerScreenBounds);
                 int tabInsertIndex = 0;
 
                 if(!tabPane.getTabs().isEmpty()) {

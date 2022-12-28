@@ -263,7 +263,6 @@ public class DoubleSidedTabPaneSkin extends SkinBase<DoubleSidedTabPane> {
             if(contentDivider.getRelativePos() <= 0.5){
                 leftTabPane.setViewOrder(2);
                 rightTabPane.setViewOrder(1);
-
             } else {
                 leftTabPane.setViewOrder(1);
                 rightTabPane.setViewOrder(2);

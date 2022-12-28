@@ -128,9 +128,10 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         tabHeaderArea = new TabHeaderArea();
         tabHeaderArea.setClip(tabHeaderAreaClipRect);
         getChildren().add(tabHeaderArea);
+        /*
         if (getSkinnable().getTabs().size() == 0) {
             tabHeaderArea.setVisible(false);
-        }
+        }*/
 
         initializeTabListener();
 
@@ -266,9 +267,11 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         TabPane tabPane = getSkinnable();
         Side tabPosition = tabPane.getSide();
 
-        double headerHeight = tabPosition.isHorizontal()
-                ? snapSizeY(tabHeaderArea.prefHeight(-1))
-                : snapSizeX(tabHeaderArea.prefHeight(-1));
+        double headerHeight = getSkinnable().getTabs().isEmpty()
+                ? tabHeaderArea.headerBackground.getHeight()
+                : tabPosition.isHorizontal()
+                    ? snapSizeY(tabHeaderArea.prefHeight(-1))
+                    : snapSizeX(tabHeaderArea.prefHeight(-1));
         double tabsStartX = tabPosition.equals(Side.RIGHT)? x + w - headerHeight : x;
         double tabsStartY = tabPosition.equals(Side.BOTTOM)? y + h - headerHeight : y;
 
@@ -424,9 +427,10 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
 
                     tabHeaderArea.removeTab(tab);
                     tabHeaderArea.requestLayout();
+                    /*
                     if (getSkinnable().getTabs().isEmpty()) {
                         tabHeaderArea.setVisible(false);
-                    }
+                    }*/
                 };
 
                 if (closeTabAnimation.get() == TabAnimation.GROW) {
@@ -798,7 +802,6 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
             headersRegion.getStyleClass().setAll("headers-region");
             headersRegion.setClip(headerClip);
             setupReordering(headersRegion);
-            headersRegion.setStyle("-fx-background-color: #FF0000;");
 
             headerBackground = new StackPane();
             headerBackground.getStyleClass().setAll("tab-header-background");
@@ -850,10 +853,10 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
             double controlButtonPrefWidth = snapSize(controlButtons.prefWidth(-1));
 
             measureClosingTabs = true;
-            double headersPrefWidth = snapSize(headersRegion.prefWidth(-1));
+            double headersPrefWidth = snapSize(tabHeaderAreaClipRect.getWidth());
             measureClosingTabs = false;
 
-            double headersPrefHeight = snapSize(headersRegion.prefHeight(-1));
+            double headersPrefHeight = snapSize(tabHeaderAreaClipRect.getHeight());
 
             // Add the spacer if isShowTabsMenu is true.
             if (controlButtonPrefWidth > 0) {
@@ -1041,7 +1044,7 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
             double h = snapSize(getHeight()) - (isHorizontal() ?
                     topInset + bottomInset : leftInset + rightInset);
             double tabBackgroundHeight = snapSize(prefHeight(-1));
-            double headersPrefWidth = snapSize(headersRegion.prefWidth(-1));
+            double headersPrefWidth = snapSize(tabHeaderAreaClipRect.getWidth());
             double headersPrefHeight = snapSize(headersRegion.prefHeight(-1));
 
             controlButtons.showTabsMenu(! tabsFit());

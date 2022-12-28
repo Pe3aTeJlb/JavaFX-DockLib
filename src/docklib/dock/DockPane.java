@@ -399,6 +399,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                     !((DraggableTabPane)event.getContents()).sameProject((DraggableTabPane)dockNodeTarget)){
                 return;
             }
+            if(((DraggableTabPane)dockNodeTarget).getTabs().isEmpty()){
+                setCenterDockOnly();
+            } else {
+                setDockAvailable();
+            }
         }
 
         Scene scene = dockNodeTarget.getScene();
@@ -491,6 +496,18 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     }
 
+    private void setCenterDockOnly(){
+        for(int i = 0; i < gridPaneBtns.size() - 1; i++){
+            gridPaneBtns.get(i).setVisible(false);
+        }
+    }
+
+    private void setDockAvailable(){
+        for(int i = 0; i < gridPaneBtns.size() - 1; i++){
+            gridPaneBtns.get(i).setVisible(true);
+        }
+    }
+
     public void showWinDockPopup(Node dockNodeTarget, DockAnchor dockAnchor){
 
         if(!winInteractive)
@@ -556,12 +573,14 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     public void showNodeDockPopup(Node dockNodeTarget, DockEvent event){
 
         for (DockAnchorButton btn : gridPaneBtns) {
-            if (btn.contains(btn.screenToLocal(event.getScreenX(), event.getScreenY()))) {
-                dockAnchor = btn.getDockAnchor();
-                btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), true);
-                break;
-            }else{
-                btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), false);
+            if(btn.isVisible()) {
+                if (btn.contains(btn.screenToLocal(event.getScreenX(), event.getScreenY()))) {
+                    dockAnchor = btn.getDockAnchor();
+                    btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), true);
+                    break;
+                } else {
+                    btn.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), false);
+                }
             }
         }
 
