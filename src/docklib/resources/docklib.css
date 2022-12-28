@@ -11,11 +11,24 @@
 }
 
 .node-dock-selector {
-       -fx-padding: 10;
-       -fx-hgap: 15;
-       -fx-vgap: 25;
-       -fx-shape: "M0,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0";
-       -fx-background-color: rgba(50, 50, 100, 0.4);
-       -fx-border-width: 40;
-       -fx-border-color: rgba(50, 50, 100, 0.2);
+       -fx-hgap: 20;
+       -fx-vgap: 20;
+}
+
+.node-dock-selector-back {
+   -fx-fill: rgba(0,0,0,0.7);
+}
+
+.node-dock-selector-button {
+    -fx-background-color: rgba(0,0,0,0.3);
+    -fx-background-radius: 30px, 30px;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+}
+
+.node-dock-selector-button:focused {
+    -fx-background-color: rgba(0,0,0,0.8);
+    -fx-background-radius: 30px, 30px;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
 }

@@ -610,9 +610,10 @@ public class DraggableTab extends Tab {
                 continue;
             }
 
-            Rectangle2D tabAbsolute = getAbsoluteRect(tabPane);
-            if(tabAbsolute.contains(screenPoint)) {
-
+            Rectangle2D headerScreenBounds = getAbsoluteRect(tabPane);
+            System.out.println(screenPoint);
+            if(headerScreenBounds.contains(screenPoint)) {
+                System.out.println(headerScreenBounds);
                 int tabInsertIndex = 0;
 
                 if(!tabPane.getTabs().isEmpty()) {
@@ -624,7 +625,7 @@ public class DraggableTab extends Tab {
 
                     if(side == Side.TOP) {
 
-                        if (screenPoint.getY() > firstTabRect.getMaxY() || screenPoint.getY() < firstTabRect.getMinY()) {
+                        if (screenPoint.getY() > headerScreenBounds.getMaxY() || screenPoint.getY() < headerScreenBounds.getMinY()) {
                             return null;
                         }
 
@@ -653,7 +654,7 @@ public class DraggableTab extends Tab {
 
                     } else if(side == Side.BOTTOM){
 
-                        if (screenPoint.getY() < firstTabRect.getMinY() || screenPoint.getY() > firstTabRect.getMaxY()) {
+                        if (screenPoint.getY() < headerScreenBounds.getMinY() || screenPoint.getY() > headerScreenBounds.getMaxY()) {
                             return null;
                         }
 
@@ -682,7 +683,7 @@ public class DraggableTab extends Tab {
 
                     } else if(side == Side.LEFT) {
 
-                        if (screenPoint.getX() > firstTabRect.getMaxX() || screenPoint.getX() < firstTabRect.getMinX()) {
+                        if (screenPoint.getX() > headerScreenBounds.getMaxX() || screenPoint.getX() < headerScreenBounds.getMinX()) {
                             return null;
                         }
 
@@ -711,7 +712,7 @@ public class DraggableTab extends Tab {
 
                     } else if(side == Side.RIGHT){
 
-                        if (screenPoint.getX() > firstTabRect.getMaxX() || screenPoint.getX() < firstTabRect.getMinX()) {
+                        if (screenPoint.getX() > headerScreenBounds.getMaxX() || screenPoint.getX() < headerScreenBounds.getMinX()) {
                             return null;
                         }
 
@@ -753,21 +754,55 @@ public class DraggableTab extends Tab {
 
     }
 
-    private Rectangle2D getAbsoluteRect(Control node) {
+    private Rectangle2D getAbsoluteRect(DraggableTabPane node) {
 
+        Node header = ((HeaderReachable)node.getSkin()).getTabHeaderArea();
+        Bounds headerScreenBounds = header.localToScreen(header.getLayoutBounds());
+        /*
         return new Rectangle2D(
                 node.localToScene(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY()).getX() + node.getScene().getWindow().getX(),
                 node.localToScene(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY()).getY() + node.getScene().getWindow().getY(),
                 node.getWidth(),
                 node.getHeight()
+        );*/
+        return new Rectangle2D(
+                headerScreenBounds.getMinX(),
+                headerScreenBounds.getMinY(),
+                headerScreenBounds.getWidth(),
+                headerScreenBounds.getHeight()
         );
 
+    }
+
+    private Rectangle2D getAbsoluteRect(Tab tab) {
+        Control node = ((DraggableTab) tab).getLabel();
+        return getAbsoluteRect(node, tab.getTabPane().getSide());
     }
 
     private Rectangle2D getAbsoluteRect(Control node, Side side){
 
         //Pls, don't ask me why there is no symmetry, just put up with these coefficients
         //Thank God, it works
+        Bounds nodeScreenBounds = node.localToScreen(node.getLayoutBounds());
+        return new Rectangle2D(
+                nodeScreenBounds.getMinX(),
+                nodeScreenBounds.getMinY(),
+                node.getWidth(),
+                node.getHeight()
+        );
+
+        /*
+        switch (side){
+            case TOP:
+                break;
+            case BOTTOM:
+                break;
+            case LEFT:
+                break;
+            case RIGHT:
+                break;
+        }
+
         if(side == Side.TOP ) {
             return new Rectangle2D(
                     node.localToScene(node.getLayoutBounds().getMinX(), node.getLayoutBounds().getMinY()).getX() + node.getScene().getWindow().getX(),
@@ -798,13 +833,8 @@ public class DraggableTab extends Tab {
             );
         }
 
-        return null;
+        return null;*/
 
-    }
-
-    private Rectangle2D getAbsoluteRect(Tab tab) {
-        Control node = ((DraggableTab) tab).getLabel();
-        return getAbsoluteRect(node, tab.getTabPane().getSide());
     }
 
     private boolean betweenX(Rectangle2D r1, Rectangle2D r2, double xPoint) {
@@ -923,7 +953,7 @@ public class DraggableTab extends Tab {
 
             this.getItems().addAll(
                     dockPinnedItem,
-                    dockUnpinnedItem,
+                    //dockUnpinnedItem,
                     floatItem,
                     windowItem,
                     new SeparatorMenuItem(),

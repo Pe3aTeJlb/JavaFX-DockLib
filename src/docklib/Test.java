@@ -1,5 +1,9 @@
 package docklib;
 
+import docklib.dock.DockPane;
+import docklib.draggabletabpane.DraggableTab;
+import docklib.draggabletabpane.DraggableTabPane;
+import docklib.draggabletabpane.TabGroup;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;

@@ -18,6 +18,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
 
     private DraggableTabPane leftTabPane;
     private DraggableTabPane rightTabPane;
+    private double prefExpandedSize = 0;
 
     public DoubleSidedTabPane(){
 
@@ -37,7 +38,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
             if(leftTabPane.isCollapsed()) {
                 collapse();
             } else {
-                show();
+                expand();
             }
         });
 
@@ -45,7 +46,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
             if(rightTabPane.isCollapsed()) {
                 collapse();
             } else {
-                show();
+                expand();
             }
         });
 
@@ -68,26 +69,27 @@ public class DoubleSidedTabPane extends Control implements Dockable {
         if(leftTabPane.isCollapsed() && rightTabPane.isCollapsed()) {
 
             if (getSide().isHorizontal()) {
-
+                prefExpandedSize = this.getHeight();
                 this.setMinHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
                 this.setMaxHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
-
             } else {
-
+                prefExpandedSize = this.getWidth();
                 this.setMinWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
                 this.setMaxWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
-
             }
-
         }
 
     }
 
-    private void show(){
+    private void expand(){
 
         if(getSide().isHorizontal()){
+            this.setMinHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight() + 10);
+            this.setPrefHeight(prefExpandedSize);
             this.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
         } else {
+            this.setMinWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight() + 10);
+            this.setPrefWidth(prefExpandedSize);
             this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
         }
 
@@ -105,10 +107,9 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
 
                     for (Node splitItem : split.getItems()) {
-                        magnitude += splitItem.prefWidth(0);
+                        magnitude += splitItem.getLayoutBounds().getWidth();
                     }
 
-                    System.out.println(Arrays.toString(split.getDividerPositions()));
                     if (otherSide) {
                         split.setDividerPosition(relativeIndex - 1, 1 - this.prefWidth(0) / magnitude);
                     } else {
@@ -118,7 +119,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                 } else {
 
                     for (Node splitItem : split.getItems()) {
-                        magnitude += splitItem.prefHeight(0);
+                        magnitude += splitItem.getLayoutBounds().getHeight();
                     }
 
                     if (otherSide) {

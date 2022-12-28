@@ -156,11 +156,6 @@ public class Demo extends Application {
         dockPane.dock(workspaceTabPane2, DockAnchor.TOP);
         dockPane.dock(workspaceTabPane3, DockAnchor.BOTTOM);
 
-/*
-        SplitPane ss = new SplitPane(workspaceTabPane4, workspaceTabPane5);
-        ss.setSkin(new SplitPaneSkin(ss));
-        dockPane.dock(ss,DockAnchor.TOP );
-*/
         final Menu menu1 = new Menu("File");
         final Menu menu2 = new Menu("Options");
         final Menu menu3 = new Menu("Help");

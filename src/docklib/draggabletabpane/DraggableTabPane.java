@@ -3,6 +3,7 @@ package docklib.draggabletabpane;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockPane;
 import docklib.dock.Dockable;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -118,7 +119,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if (tabGroup == TabGroup.System) {
             return new DraggableTabPaneSkin(this);
         } else {
-            return new TabPaneSkin(this);
+            return new CustomTabPaneSkin(this);
         }
     }
 
@@ -203,11 +204,11 @@ public class DraggableTabPane extends TabPane implements Dockable {
             return;
 
         if(getSide().isHorizontal()) {
-            prefExpandedSize = this.computePrefHeight(0);
+            prefExpandedSize = this.getHeight();
             this.setMaxHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
             this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         } else  {
-            prefExpandedSize = this.computePrefWidth(0);
+            prefExpandedSize = this.getWidth();
             this.setMaxWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
             this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         }
@@ -224,11 +225,11 @@ public class DraggableTabPane extends TabPane implements Dockable {
             return;
 
         if(getSide().isHorizontal()){
-            this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight() + 10);
             this.setPrefHeight(prefExpandedSize);
             this.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
         } else {
-            this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+            this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight() + 10);
             this.setPrefWidth(prefExpandedSize);
             this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
         }

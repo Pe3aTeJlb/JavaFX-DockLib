@@ -8,17 +8,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
+import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Popup;
 import javafx.stage.Window;
@@ -34,8 +31,9 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     private Node root;
 
     private Popup winDockPopup, nodeDockPopup;
+    private double CIRCLE_RADIUS = 100;
     private DockAnchorButton dockAnchorButton;
-    private GridPane nodeDockSelector;
+    private StackPane nodeDockSelector;
     private ObservableList<DockAnchorButton> gridPaneBtns;
     private Rectangle winDockAreaIndicator, nodeDockAreaIndicator;
 
@@ -59,6 +57,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             this.setMouseTransparent(true);
             this.dockAnchor = dockAnchor;
             this.setDockAnchor(this.dockAnchor);
+            this.getStyleClass().add("node-dock-selector-button");
         }
 
         public void setDockAnchor(DockAnchor dockAnchor){
@@ -139,24 +138,43 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         gridPaneBtns = FXCollections.observableArrayList(dockTopBtn, dockBottomBtn, dockLeftBtn, dockRightBtn, dockCenterBtn);
 
-        nodeDockSelector = new GridPane();
+        nodeDockSelector = new StackPane();
+        nodeDockSelector.setAlignment(Pos.CENTER);
 
-        nodeDockSelector.add(dockTopBtn, 1, 0);
-        nodeDockSelector.add(dockRightBtn, 2, 1);
-        nodeDockSelector.add(dockBottomBtn, 1, 2);
-        nodeDockSelector.add(dockLeftBtn, 0, 1);
-        nodeDockSelector.add(dockCenterBtn, 1, 1);
+        Circle back = new Circle();
+        back.getStyleClass().add("node-dock-selector-back");
+        back.setRadius(CIRCLE_RADIUS);
+
+        GridPane gridPane = new GridPane();
+        gridPane.getStyleClass().add("node-dock-selector");
+        gridPane.setPrefSize(nodeDockSelector.getPrefWidth(), nodeDockSelector.getPrefHeight());
+        gridPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+        gridPane.add(back, 1, 1);
+        gridPane.add(dockTopBtn, 1, 0);
+        gridPane.add(dockRightBtn, 2, 1);
+        gridPane.add(dockBottomBtn, 1, 2);
+        gridPane.add(dockLeftBtn, 0, 1);
+        gridPane.add(dockCenterBtn, 1, 1);
+
+        for(ColumnConstraints c: gridPane.getColumnConstraints()){
+            c.setHgrow(Priority.ALWAYS);
+        }
+        for(RowConstraints c: gridPane.getRowConstraints()){
+            c.setVgrow(Priority.ALWAYS);
+        }
+
+        nodeDockSelector.getChildren().addAll(back, gridPane);
 
         nodeDockAreaIndicator = new Rectangle();
         nodeDockAreaIndicator.setManaged(false);
         nodeDockAreaIndicator.setMouseTransparent(true);
         nodeDockAreaIndicator.setVisible(false);
 
-        nodeDockPopup.getContent().addAll(nodeDockSelector, nodeDockAreaIndicator);
+        nodeDockPopup.getContent().addAll(nodeDockAreaIndicator, nodeDockSelector);
 
         winDockAreaIndicator.getStyleClass().add("dock-area-indicator");
         nodeDockAreaIndicator.getStyleClass().add("dock-area-indicator");
-        nodeDockSelector.getStyleClass().add("node-dock-selector");
 
     }
 
@@ -433,7 +451,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                         dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds()).getCenterY()
                 );
 
-                if(eventPos.distance(dockTargetNodeCenter) <  65){
+                if(eventPos.distance(dockTargetNodeCenter) < CIRCLE_RADIUS){
                     showNodeDockPopup(dockNodeTarget, event);
                 } else {
                     winDockPopup.hide();
