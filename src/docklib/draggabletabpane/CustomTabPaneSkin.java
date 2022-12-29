@@ -1109,6 +1109,10 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         return tabHeaderArea;
     }
 
+    @Override
+    public NodeOrientation getHeaderOrientation() {
+        return tabHeaderArea.getNodeOrientation();
+    }
 
 
     /**************************************************************************

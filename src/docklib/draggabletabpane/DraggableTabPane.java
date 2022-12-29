@@ -6,11 +6,10 @@ import docklib.dock.Dockable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
-import javafx.collections.ListChangeListener;
+import javafx.geometry.NodeOrientation;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.skin.TabPaneSkin;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
     private InvalidationListener skinListener;
     private InvalidationListener layoutListener;
 
-    public boolean collapseOnStart = true;
+    public boolean collapseOnInit = true;
 
     public DraggableTabPane(){
         this(TabGroup.None, null);
@@ -50,11 +49,12 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
         this.tabGroup = dockGroup;
         this.dockPane = dockPane;
+        this.prefExpandedSize = 200;
         if(dockGroup == TabGroup.System) {
 
             this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
-            if(collapseOnStart) {
+            if(collapseOnInit) {
                 layoutListener = change -> collapse();
                 skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
                 this.skinProperty().addListener(skinListener);
@@ -192,13 +192,13 @@ public class DraggableTabPane extends TabPane implements Dockable {
     private BooleanProperty collapsed;
     private double prefExpandedSize = 0;
 
-    public void setCollapseOnStart(boolean collapseOnStart) {
-        this.collapseOnStart = collapseOnStart;
+    public void setCollapseOnInit(boolean collapseOnInit) {
+        this.collapseOnInit = collapseOnInit;
     }
 
     public void collapse(){
 
-        if(collapseOnStart) {
+        if(collapseOnInit) {
             this.skinProperty().removeListener(skinListener);
             ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().removeListener(layoutListener);
         }
@@ -206,18 +206,43 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if(isCollapsed())
             return;
 
+        if(isWrappedInDockPane()){
+
+            double[] dividers = split.getDividerPositions();
+            int relativeIndex = split.getItems().indexOf(this);
+            if(relativeIndex == split.getItems().size() - 1){
+                relativeIndex -= 1;
+            }
+
+            int finalRelativeIndex = relativeIndex;
+            Platform.runLater(() ->{
+                for(int i = 0; i < split.getDividerPositions().length; i++) {
+                    if(i != finalRelativeIndex) {
+                        split.setDividerPositions(i, dividers[i]);
+                    }
+                }
+            });
+
+        }
+
         if(getSide().isHorizontal()) {
-            prefExpandedSize = this.getHeight();
+            if(!collapseOnInit) {
+                prefExpandedSize = this.getHeight();
+            }
             this.setMaxHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
             this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         } else  {
-            prefExpandedSize = this.getWidth();
+            if(!collapseOnInit) {
+                prefExpandedSize = this.getWidth();
+            }
             this.setMaxWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
             this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         }
 
         collapsedProperty().set(true);
-
+        if(collapseOnInit) {
+            collapseOnInit = false;
+        }
         this.setFocused(false);
 
     }
@@ -292,6 +317,11 @@ public class DraggableTabPane extends TabPane implements Dockable {
         }
 
         return this.collapsed;
+    }
+
+
+    public NodeOrientation getHeaderOrientation(){
+        return ((HeaderReachable)getSkin()).getHeaderOrientation();
     }
 
 /*

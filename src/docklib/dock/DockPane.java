@@ -199,6 +199,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             }
             root = split;
             this.getChildren().add(root);
+
             return;
         }
 

@@ -7,12 +7,11 @@ import docklib.draggabletabpane.DraggableTab;
 import docklib.draggabletabpane.DraggableTabPane;
 import docklib.draggabletabpane.DraggableTabPaneSkin;
 import docklib.draggabletabpane.TabGroup;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-
-import java.util.Arrays;
 
 public class DoubleSidedTabPane extends Control implements Dockable {
 
@@ -68,6 +67,25 @@ public class DoubleSidedTabPane extends Control implements Dockable {
 
         if(leftTabPane.isCollapsed() && rightTabPane.isCollapsed()) {
 
+            if(isWrappedInDockPane()){
+
+                double[] dividers = split.getDividerPositions();
+                int relativeIndex = split.getItems().indexOf(this);
+                if(relativeIndex == split.getItems().size() - 1){
+                    relativeIndex -= 1;
+                }
+
+                int finalRelativeIndex = relativeIndex;
+                Platform.runLater(() ->{
+                    for(int i = 0; i < split.getDividerPositions().length; i++) {
+                        if(i != finalRelativeIndex) {
+                            split.setDividerPositions(i, dividers[i]);
+                        }
+                    }
+                });
+
+            }
+
             if (getSide().isHorizontal()) {
                 prefExpandedSize = this.getHeight();
                 this.setMinHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
@@ -77,6 +95,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                 this.setMinWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
                 this.setMaxWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
             }
+
         }
 
     }
