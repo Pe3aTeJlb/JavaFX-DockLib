@@ -127,10 +127,21 @@ public class DraggableTab extends Tab {
             double dragDelta = 0;
 
             switch (this.getTabPane().getSide()){
-                case TOP:       animDirection = ""; dragDelta = Math.abs(event.getScreenY() - dragOrigin.getY()); break;
-                case LEFT:      animDirection = "-"; dragDelta = Math.abs(event.getScreenX() - dragOrigin.getX()); break;
-                case RIGHT:     animDirection = ""; dragDelta = Math.abs(dragOrigin.getX() - event.getScreenX()); break;
-                case BOTTOM:    animDirection = "-"; dragDelta = Math.abs(dragOrigin.getY() - event.getScreenY()); break;
+                case TOP:
+                    animDirection = ((DraggableTabPane)this.getTabPane()).getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT ? "" : "-";
+                    dragDelta = Math.abs(event.getScreenY() - dragOrigin.getY()); break;
+                case LEFT:
+                    animDirection = ((DraggableTabPane)this.getTabPane()).getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT ? "-" : "";
+                    dragDelta = Math.abs(event.getScreenX() - dragOrigin.getX());
+                    break;
+                case RIGHT:
+                    animDirection = ((DraggableTabPane)this.getTabPane()).getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT ? "" : "-";
+                    dragDelta = Math.abs(dragOrigin.getX() - event.getScreenX());
+                    break;
+                case BOTTOM:
+                    animDirection = ((DraggableTabPane)this.getTabPane()).getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT ? "-" : "";
+                    dragDelta = Math.abs(dragOrigin.getY() - event.getScreenY());
+                    break;
             }
 
             if (!detached.get() && dragDelta > 25) {
@@ -269,7 +280,6 @@ public class DraggableTab extends Tab {
                 }
 
                 int index = data.getIndex();
-
                 //no anim
                 if (index == data.getInsertPane().getTabs().size()) {
                     return;
@@ -355,7 +365,7 @@ public class DraggableTab extends Tab {
                     if (addIndex > insertData.getInsertPane().getTabs().size()) {
                         addIndex = insertData.getInsertPane().getTabs().size();
                     }
-                    System.out.println("smt was added");
+                    System.out.println("smt was added at index " + addIndex);
                     insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
                     System.out.println(insertData.getInsertPane().getTabs());
                     insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
@@ -622,126 +632,118 @@ public class DraggableTab extends Tab {
                     if(tabPane.getScene() == null) {
                         continue;
                     }
-                    Rectangle2D firstTabRect = getAbsoluteRect(tabPane.getTabs().get(0));
 
-                    if(side == Side.TOP) {
+                    Rectangle2D firstTabRect = getAbsoluteRect(tabPane.getTabs().get(0));
+                    Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
+
+                    if(side.isHorizontal()) {
 
                         if (screenPoint.getY() > headerScreenBounds.getMaxY() || screenPoint.getY() < headerScreenBounds.getMinY()) {
                             return null;
                         }
 
-                        Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
+                        if(tabPane.getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT) {
 
-                        if (screenPoint.getX() < (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
-                            tabInsertIndex = 0;
-                        } else if (screenPoint.getX() > (lastTabRect.getMaxX() - lastTabRect.getWidth() / 2)) {
-                            tabInsertIndex = tabPane.getTabs().size();
-                        } else {
+                            if (screenPoint.getX() < (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
+                                tabInsertIndex = 0;
+                            } else if (screenPoint.getX() > (lastTabRect.getMaxX() - lastTabRect.getWidth() / 2)) {
+                                tabInsertIndex = tabPane.getTabs().size();
+                            } else {
 
-                            for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
-                                Tab leftTab = tabPane.getTabs().get(i);
-                                Tab rightTab = tabPane.getTabs().get(i + 1);
-                                if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
-                                    Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
-                                    Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
-                                    if (betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
-                                        tabInsertIndex = i + 1;
-                                        break;
+                                for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
+                                    Tab leftTab = tabPane.getTabs().get(i);
+                                    Tab rightTab = tabPane.getTabs().get(i + 1);
+                                    if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
+                                        Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
+                                        Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
+                                        if (betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
+                                            tabInsertIndex = i + 1;
+                                            break;
+                                        }
                                     }
                                 }
+
+                            }
+
+                        } else {
+
+                            if (screenPoint.getX() > (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
+                                tabInsertIndex = 0;
+                            } else if (screenPoint.getX() < (lastTabRect.getMinX() + lastTabRect.getWidth() / 2)) {
+                                tabInsertIndex = tabPane.getTabs().size();
+                            } else {
+                                for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
+                                    Tab rightTab = tabPane.getTabs().get(i);
+                                    Tab leftTab = tabPane.getTabs().get(i + 1);
+                                    if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
+                                        Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
+                                        Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
+                                        if (betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
+                                            tabInsertIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+                                }
+
                             }
 
                         }
 
-                    } else if(side == Side.BOTTOM){
-
-                        if (screenPoint.getY() < headerScreenBounds.getMinY() || screenPoint.getY() > headerScreenBounds.getMaxY()) {
-                            return null;
-                        }
-
-                        Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
-
-                        if (screenPoint.getX() < (firstTabRect.getMinX() + firstTabRect.getWidth() / 2)) {
-                            tabInsertIndex = 0;
-                        } else if (screenPoint.getX() > (lastTabRect.getMaxX() - lastTabRect.getWidth() / 2)) {
-                            tabInsertIndex = tabPane.getTabs().size();
-                        } else {
-
-                            for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
-                                Tab leftTab = tabPane.getTabs().get(i);
-                                Tab rightTab = tabPane.getTabs().get(i + 1);
-                                if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
-                                    Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
-                                    Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
-                                    if (betweenX(leftTabRect, rightTabRect, screenPoint.getX())) {
-                                        tabInsertIndex = i + 1;
-                                        break;
-                                    }
-                                }
-                            }
-
-                        }
-
-                    } else if(side == Side.LEFT) {
+                    } else {
 
                         if (screenPoint.getX() > headerScreenBounds.getMaxX() || screenPoint.getX() < headerScreenBounds.getMinX()) {
                             return null;
                         }
 
-                        Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
+                        if(tabPane.getHeaderOrientation() == NodeOrientation.LEFT_TO_RIGHT) {
 
-                        if (screenPoint.getY() < (firstTabRect.getMinY() + firstTabRect.getHeight() / 2)) {
-                            tabInsertIndex = 0;
-                        } else if (screenPoint.getY() > (lastTabRect.getMaxY() - lastTabRect.getHeight() / 2)) {
-                            tabInsertIndex = tabPane.getTabs().size();
-                        } else {
+                            if (screenPoint.getY() < (firstTabRect.getMinY() + firstTabRect.getHeight() / 2)) {
+                                tabInsertIndex = 0;
+                            } else if (screenPoint.getY() > (lastTabRect.getMaxY() - lastTabRect.getHeight() / 2)) {
+                                tabInsertIndex = tabPane.getTabs().size();
+                            } else {
 
-                            for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
-                                Tab leftTab = tabPane.getTabs().get(i);
-                                Tab rightTab = tabPane.getTabs().get(i + 1);
-                                if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
-                                    Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
-                                    Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
-                                    if (betweenY(leftTabRect, rightTabRect, screenPoint.getY())) {
-                                        tabInsertIndex = i + 1;
-                                        break;
+                                for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
+                                    Tab leftTab = tabPane.getTabs().get(i);
+                                    Tab rightTab = tabPane.getTabs().get(i + 1);
+                                    if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
+                                        Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
+                                        Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
+                                        if (betweenY(leftTabRect, rightTabRect, screenPoint.getY())) {
+                                            tabInsertIndex = i + 1;
+                                            break;
+                                        }
                                     }
                                 }
+
                             }
 
-                        }
-
-                    } else if(side == Side.RIGHT){
-
-                        if (screenPoint.getX() > headerScreenBounds.getMaxX() || screenPoint.getX() < headerScreenBounds.getMinX()) {
-                            return null;
-                        }
-
-                        Rectangle2D lastTabRect = getAbsoluteRect(tabPane.getTabs().get(tabPane.getTabs().size() - 1));
-
-                        if (screenPoint.getY() < (firstTabRect.getMinY() + firstTabRect.getHeight() / 2)) {
-                            tabInsertIndex = 0;
-                        } else if (screenPoint.getY() > (lastTabRect.getMaxY() - lastTabRect.getHeight() / 2)) {
-                            tabInsertIndex = tabPane.getTabs().size();
                         } else {
 
-                            for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
-                                Tab leftTab = tabPane.getTabs().get(i);
-                                Tab rightTab = tabPane.getTabs().get(i + 1);
-                                if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
-                                    Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
-                                    Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
-                                    if (betweenY(leftTabRect, rightTabRect, screenPoint.getY())) {
-                                        tabInsertIndex = i + 1;
-                                        break;
+                            if (screenPoint.getY() > (firstTabRect.getMinY() + firstTabRect.getHeight() / 2)) {
+                                tabInsertIndex = 0;
+                            } else if (screenPoint.getY() < (lastTabRect.getMinY() + lastTabRect.getHeight() / 2)) {
+                                tabInsertIndex = tabPane.getTabs().size();
+                            } else {
+
+                                for (int i = 0; i < tabPane.getTabs().size() - 1; i++) {
+                                    Tab rightTab = tabPane.getTabs().get(i);
+                                    Tab leftTab = tabPane.getTabs().get(i + 1);
+                                    if (leftTab instanceof DraggableTab && rightTab instanceof DraggableTab) {
+                                        Rectangle2D leftTabRect = getAbsoluteRect(leftTab);
+                                        Rectangle2D rightTabRect = getAbsoluteRect(rightTab);
+                                        if (betweenY(leftTabRect, rightTabRect, screenPoint.getY())) {
+                                            tabInsertIndex = i + 1;
+                                            break;
+                                        }
                                     }
                                 }
+
                             }
 
                         }
 
                     }
-
 
                 }
 
