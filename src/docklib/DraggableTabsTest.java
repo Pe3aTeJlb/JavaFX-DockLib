@@ -60,10 +60,24 @@ public class DraggableTabsTest extends Application {
 
         DraggableTab tab31 = new DraggableTab("System Tab 9", "icon.png", new TextArea());
         DraggableTab tab32 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab33 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab34 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab35 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab36 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab37 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab38 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab39 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
 
         systemTabPaneBottom.addAll(
                 tab31,
-                tab32
+                tab32,
+                tab33,
+                tab34,
+                tab35,
+                tab36,
+                tab37,
+                tab38,
+                tab39
         );
 
         DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);

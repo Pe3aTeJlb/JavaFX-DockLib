@@ -1,12 +1,8 @@
-package docklib;
+package docklib.draggabletabpane;
 
 import docklib.dock.DockAnchor;
 import docklib.dock.DockPane;
 import docklib.dock.Dockable;
-import docklib.draggabletabpane.DraggableTab;
-import docklib.draggabletabpane.DraggableTabPane;
-import docklib.draggabletabpane.DraggableTabPaneSkin;
-import docklib.draggabletabpane.TabGroup;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.geometry.*;

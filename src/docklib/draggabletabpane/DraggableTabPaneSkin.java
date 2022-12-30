@@ -338,7 +338,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
     /** {@inheritDoc} */
     @Override protected void layoutChildren(final double x, final double y,
                                             final double w, final double h) {
-
         DraggableTabPane tabPane = getSkinnable();
         Side tabPosition = tabPane.getSide();
 
@@ -1195,7 +1194,6 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             } else {
                 actualNewScrollOffset = newScrollOffset;
             }
-
             if (Math.abs(actualNewScrollOffset - scrollOffset) > 0.001) {
                 scrollOffset = actualNewScrollOffset;
                 headersRegion.requestLayout();

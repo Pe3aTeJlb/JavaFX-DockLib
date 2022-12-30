@@ -27,103 +27,6 @@ public class Demo extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        DraggableTabPane systemTabPaneLeft = new DraggableTabPane(TabGroup.System);
-        systemTabPaneLeft.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-        systemTabPaneLeft.setSide(Side.LEFT);
-        systemTabPaneLeft.setRotateGraphic(true);
-
-        DraggableTab tab1 = new DraggableTab("", "icon.png", generateRandomTree());
-        DraggableTab tab2 = new DraggableTab("System Tab 2", "icon.png", new Rectangle(100, 100, Color.AQUA));
-
-        systemTabPaneLeft.addAll(
-                tab1,
-                tab2
-        );
-
-        DraggableTabPane systemTabPaneRight = new DraggableTabPane(TabGroup.System);
-        systemTabPaneRight.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-        systemTabPaneRight.setSide(Side.RIGHT);
-        systemTabPaneRight.setRotateGraphic(true);
-
-        DraggableTab tab21 = new DraggableTab("System Tab 5", "icon.png", generateRandomTree());
-        DraggableTab tab22 = new DraggableTab("System Tab 6", "icon.png", new Rectangle(100, 100, Color.BLANCHEDALMOND));
-
-        systemTabPaneRight.addAll(
-                tab21,
-                tab22
-        );
-
-
-        DraggableTabPane systemTabPaneBottom = new DraggableTabPane(TabGroup.System);
-        systemTabPaneBottom.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-        systemTabPaneBottom.setSide(Side.BOTTOM);
-        systemTabPaneBottom.setRotateGraphic(true);
-
-        DraggableTab tab31 = new DraggableTab("System Tab 9", "icon.png", new TextArea());
-        DraggableTab tab32 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
-
-        systemTabPaneBottom.addAll(
-                tab31,
-                tab32
-        );
-
-        DoubleSidedTabPane workspaceTabPane2 = new DoubleSidedTabPane();
-        workspaceTabPane2.setSide(Side.TOP);
-
-        DraggableTab tab41 = new DraggableTab("System Tab 1", "icon.png", new TextArea());
-        DraggableTab tab42 = new DraggableTab("System Tab 2", "icon.png", new TextArea());
-        DraggableTab tab43 = new DraggableTab("System Tab 3", "icon.png", new TextArea());
-        DraggableTab tab44 = new DraggableTab("System Tab 4", "icon.png", new TextArea());
-        DraggableTab tab45 = new DraggableTab("System Tab 5", "icon.png", new TextArea());
-        DraggableTab tab46 = new DraggableTab("System Tab 6", "icon.png", new TextArea());
-
-        workspaceTabPane2.addLeft(tab41,tab42,tab43);
-        workspaceTabPane2.addRight(tab44, tab45, tab46);
-
-        DoubleSidedTabPane workspaceTabPane3 = new DoubleSidedTabPane();
-        workspaceTabPane3.setSide(Side.BOTTOM);
-
-        DraggableTab tab411 = new DraggableTab("System Tab 1", "icon.png", new TextArea());
-        DraggableTab tab421 = new DraggableTab("System Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
-        DraggableTab tab431 = new DraggableTab("System Tab 3", "icon.png", new TextArea());
-        DraggableTab tab441 = new DraggableTab("System Tab 4", "icon.png", new TextArea());
-        DraggableTab tab451 = new DraggableTab("System Tab 5", "icon.png", new TextArea());
-        DraggableTab tab461 = new DraggableTab("System Tab 6", "icon.png", new TextArea());
-
-        workspaceTabPane3.addLeft(tab411,tab421,tab431);
-        workspaceTabPane3.addRight(tab441,tab451,tab461);
-
-
-
-        DoubleSidedTabPane workspaceTabPane4 = new DoubleSidedTabPane();
-        workspaceTabPane4.setSide(Side.LEFT);
-
-        DraggableTab tab414 = new DraggableTab("System Tab 1", "icon.png", new TextArea());
-        DraggableTab tab424 = new DraggableTab("System Tab 2", "icon.png", new TextArea());
-        DraggableTab tab434 = new DraggableTab("System Tab 3", "icon.png", new TextArea());
-        DraggableTab tab444 = new DraggableTab("System Tab 4", "icon.png", new TextArea());
-        DraggableTab tab454 = new DraggableTab("System Tab 5", "icon.png", new TextArea());
-        DraggableTab tab464 = new DraggableTab("System Tab 6", "icon.png", new TextArea());
-
-        workspaceTabPane4.addLeft(tab414,tab424,tab434);
-        workspaceTabPane4.addRight(tab444,tab454,tab464);
-
-
-
-        DoubleSidedTabPane workspaceTabPane5 = new DoubleSidedTabPane();
-        workspaceTabPane5.setSide(Side.RIGHT);
-
-        DraggableTab tab415 = new DraggableTab("System Tab 1", "icon.png", new TextArea());
-        DraggableTab tab425 = new DraggableTab("System Tab 2", "icon.png", new TextArea());
-        DraggableTab tab435 = new DraggableTab("System Tab 3", "icon.png", new TextArea());
-        DraggableTab tab445 = new DraggableTab("System Tab 4", "icon.png", new TextArea());
-        DraggableTab tab455 = new DraggableTab("System Tab 5", "icon.png", new TextArea());
-        DraggableTab tab465 = new DraggableTab("System Tab 6", "icon.png", new TextArea());
-
-        workspaceTabPane5.addLeft(tab415,tab425,tab435);
-        workspaceTabPane5.addRight(tab445,tab455,tab465);
-
-
         DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
@@ -141,20 +44,42 @@ public class Demo extends Application {
                 tab440
         );
 
+        TabPane tabPane = new TabPane();
+
+        Tab tab1 = new Tab("tab 1 tab 1 tab 1", new Rectangle(100, 100, Color.ROYALBLUE));
+        Tab tab2 = new Tab("tab 2 tab 2 tab 2 ", new Rectangle(100, 100, Color.ROSYBROWN));
+        Tab tab4 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab5 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab6 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab7 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab8 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab9 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab11 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab22 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab33 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+        Tab tab44 = new Tab("tab 3 tab 3 tab 3", new Rectangle(100, 100, Color.ORANGE));
+
+
+        tabPane.getTabs().addAll(
+                tab1,
+                tab2,
+                tab4,
+                tab5,
+                tab6,
+                tab7,
+                tab8,
+                tab9,
+                tab11,
+                tab22,
+                tab33,
+                tab44
+
+        );
+
 
         DockPane dockPane = new DockPane(false);
-/*
-        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
-        dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
-        dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
-        dockPane.dock(systemTabPaneBottom, DockAnchor.BOTTOM);
-*/
 
-        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
-        dockPane.dock(workspaceTabPane4, DockAnchor.LEFT);
-        dockPane.dock(workspaceTabPane5, DockAnchor.RIGHT);
-        dockPane.dock(workspaceTabPane2, DockAnchor.TOP);
-        dockPane.dock(workspaceTabPane3, DockAnchor.BOTTOM);
+        dockPane.dock(tabPane, DockAnchor.TOP);
 
         final Menu menu1 = new Menu("File");
         final Menu menu2 = new Menu("Options");

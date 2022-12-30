@@ -1,7 +1,5 @@
-package docklib;
+package docklib.draggabletabpane;
 
-import docklib.draggabletabpane.DraggableTabPane;
-import docklib.draggabletabpane.DraggableTabPaneSkin;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.*;
@@ -19,7 +17,6 @@ public class DoubleSidedTabPaneSkin extends SkinBase<DoubleSidedTabPane> {
     private DraggableTabPane leftTabPane, rightTabPane;
     private DraggableTabPaneSkin leftSkin, rightSkin;
     private ContentDivider contentDivider;
-    private boolean init = true;
 
     /**
      * Creates a new DoubleSidedTabPaneSkin instance, installing the necessary child
@@ -74,8 +71,12 @@ public class DoubleSidedTabPaneSkin extends SkinBase<DoubleSidedTabPane> {
 
         //Collapse property listeners
 
-        registerChangeListener(control.getLeftTabPane().collapsedProperty(), e -> getSkinnable().requestLayout());
-        registerChangeListener(control.getRightTabPane().collapsedProperty(), e -> getSkinnable().requestLayout());
+        registerChangeListener(control.getLeftTabPane().collapsedProperty(), e -> {
+            getSkinnable().requestLayout();
+        });
+        registerChangeListener(control.getRightTabPane().collapsedProperty(), e -> {
+            getSkinnable().requestLayout();
+        });
 
         //Size property listeners
 
@@ -133,7 +134,6 @@ public class DoubleSidedTabPaneSkin extends SkinBase<DoubleSidedTabPane> {
 
                 leftTabPane.setMaxWidth(TabPane.USE_PREF_SIZE);
                 rightTabPane.setMaxWidth(TabPane.USE_PREF_SIZE);
-                contentDivider.setMaxHeight(TabPane.USE_PREF_SIZE);
 
                 calculateCollapse(leftSkin, rightSkin);
 

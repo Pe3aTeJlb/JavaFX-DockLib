@@ -2,6 +2,7 @@ package docklib;
 
 import docklib.dock.DockAnchor;
 import docklib.dock.DockPane;
+import docklib.draggabletabpane.DoubleSidedTabPane;
 import docklib.draggabletabpane.DraggableTab;
 import docklib.draggabletabpane.DraggableTabPane;
 import docklib.draggabletabpane.TabGroup;
@@ -132,7 +133,7 @@ public class DoubleSidedTabPaneTest extends Application {
         VBox.setVgrow(dockPane, Priority.ALWAYS);
 
         primaryStage.setTitle("Demo scene");
-        primaryStage.setScene(new Scene(vbox, 800, 500));
+        primaryStage.setScene(new Scene(vbox, 200, 500));
         primaryStage.sizeToScene();
 
         primaryStage.show();

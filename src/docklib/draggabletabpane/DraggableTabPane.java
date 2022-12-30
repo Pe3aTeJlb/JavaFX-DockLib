@@ -239,11 +239,13 @@ public class DraggableTabPane extends TabPane implements Dockable {
             this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
         }
 
-        collapsedProperty().set(true);
         if(collapseOnInit) {
             collapseOnInit = false;
         }
+
         this.setFocused(false);
+
+        this.collapsedProperty().set(true);
 
     }
 
@@ -262,7 +264,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
             this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
         }
 
-        collapsedProperty().set(false);
+        this.collapsedProperty().set(false);
 
         if(isWrappedInDockPane()){
 
