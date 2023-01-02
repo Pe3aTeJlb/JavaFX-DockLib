@@ -80,6 +80,21 @@ public class DraggableTabsTest extends Application {
                 tab39
         );
 
+        DraggableTabPane systemTabPaneTop = new DraggableTabPane(TabGroup.System);
+        systemTabPaneTop.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+        systemTabPaneTop.setSide(Side.TOP);
+        systemTabPaneTop.setRotateGraphic(true);
+
+        DraggableTab tab313 = new DraggableTab("System Tab 9", "icon.png", new TextArea());
+        DraggableTab tab323 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab333 = new DraggableTab("System Tab 10", "icon.png", new Rectangle(100, 100, Color.CORNSILK));
+
+        systemTabPaneTop.getTabs().addAll(
+                tab313,
+                tab323,
+                tab333
+        );
+
         DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);

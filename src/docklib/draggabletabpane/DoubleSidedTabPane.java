@@ -13,7 +13,8 @@ public class DoubleSidedTabPane extends Control implements Dockable {
 
     private DraggableTabPane leftTabPane;
     private DraggableTabPane rightTabPane;
-    private double prefExpandedSize = 0;
+    public boolean collapseOnInit = true;
+    private double prefExpandedSize = 200;
 
     public DoubleSidedTabPane(){
 
@@ -59,11 +60,17 @@ public class DoubleSidedTabPane extends Control implements Dockable {
         return new DoubleSidedTabPaneSkin(this);
     }
 
+    public void setCollapseOnInit(boolean collapseOnInit) {
+        this.collapseOnInit = collapseOnInit;
+        leftTabPane.setCollapseOnInit(collapseOnInit);
+        rightTabPane.setCollapseOnInit(collapseOnInit);
+    }
+
     private void collapse(){
 
         if(leftTabPane.isCollapsed() && rightTabPane.isCollapsed()) {
 
-            if(isWrappedInDockPane()){
+            if(isWrappedInDockPane() && !collapseOnInit){
 
                 double[] dividers = split.getDividerPositions();
                 int relativeIndex = split.getItems().indexOf(this);
@@ -71,25 +78,27 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                     relativeIndex -= 1;
                 }
 
-                int finalRelativeIndex = relativeIndex;
-                Platform.runLater(() ->{
-                    for(int i = 0; i < split.getDividerPositions().length; i++) {
-                        if(i != finalRelativeIndex) {
-                            split.setDividerPositions(i, dividers[i]);
-                        }
-                    }
-                });
+                dividers[relativeIndex] = 1;
+                Platform.runLater(() -> split.setDividerPositions(dividers));
 
             }
 
             if (getSide().isHorizontal()) {
-                prefExpandedSize = this.getHeight();
+                if (!collapseOnInit) {
+                    prefExpandedSize = this.getHeight();
+                }
                 this.setMinHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
                 this.setMaxHeight(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
             } else {
-                prefExpandedSize = this.getWidth();
+                if (!collapseOnInit) {
+                    prefExpandedSize = this.getWidth();
+                }
                 this.setMinWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
                 this.setMaxWidth(((DraggableTabPaneSkin)leftTabPane.getSkin()).getTabHeaderAreaHeight());
+            }
+
+            if(collapseOnInit) {
+                collapseOnInit = false;
             }
 
         }
@@ -117,7 +126,10 @@ public class DoubleSidedTabPane extends Control implements Dockable {
 
                 relativeIndex = split.getItems().indexOf(this);
                 boolean otherSide = false;
-                if (relativeIndex == split.getItems().size() - 1) otherSide = true;
+                if (relativeIndex == split.getItems().size() - 1) {
+                    relativeIndex -= 1;
+                    otherSide = true;
+                }
 
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
 
@@ -126,7 +138,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                     }
 
                     if (otherSide) {
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.prefWidth(0) / magnitude);
+                        split.setDividerPosition(relativeIndex, 1 - this.prefWidth(0) / magnitude);
                     } else {
                         split.setDividerPosition(relativeIndex, this.prefWidth(0) / magnitude);
                     }
@@ -138,7 +150,7 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                     }
 
                     if (otherSide) {
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.prefHeight(0) / magnitude);
+                        split.setDividerPosition(relativeIndex, 1 - this.prefHeight(0) / magnitude);
                     } else {
                         split.setDividerPosition(relativeIndex, this.prefHeight(0) / magnitude);
                     }

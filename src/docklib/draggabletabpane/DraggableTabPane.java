@@ -11,6 +11,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -190,7 +191,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
 
     private BooleanProperty collapsed;
-    private double prefExpandedSize = 0;
+    private double prefExpandedSize = 200;
 
     public void setCollapseOnInit(boolean collapseOnInit) {
         this.collapseOnInit = collapseOnInit;
@@ -206,7 +207,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if(isCollapsed())
             return;
 
-        if(isWrappedInDockPane()){
+        if(isWrappedInDockPane() && !collapseOnInit){
 
             double[] dividers = split.getDividerPositions();
             int relativeIndex = split.getItems().indexOf(this);
@@ -214,14 +215,8 @@ public class DraggableTabPane extends TabPane implements Dockable {
                 relativeIndex -= 1;
             }
 
-            int finalRelativeIndex = relativeIndex;
-            Platform.runLater(() ->{
-                for(int i = 0; i < split.getDividerPositions().length; i++) {
-                    if(i != finalRelativeIndex) {
-                        split.setDividerPositions(i, dividers[i]);
-                    }
-                }
-            });
+            dividers[relativeIndex] = 1;
+            Platform.runLater(() -> split.setDividerPositions(dividers));
 
         }
 
@@ -275,7 +270,10 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
                 relativeIndex = split.getItems().indexOf(this);
                 boolean otherSide = false;
-                if(relativeIndex == split.getItems().size() - 1) otherSide = true;
+                if(relativeIndex == split.getItems().size() - 1){
+                    relativeIndex -= 1;
+                    otherSide = true;
+                }
 
                 if (split.getOrientation() == Orientation.HORIZONTAL) {
 
@@ -284,7 +282,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
                     }
 
                     if(otherSide){
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.getPrefWidth() / magnitude);
+                        split.setDividerPosition(relativeIndex, 1 - this.getPrefWidth() / magnitude);
                     } else {
                         split.setDividerPosition(relativeIndex, this.getPrefWidth() / magnitude);
                     }
@@ -296,7 +294,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
                     }
 
                     if(otherSide){
-                        split.setDividerPosition(relativeIndex - 1, 1 - this.getPrefHeight() / magnitude);
+                        split.setDividerPosition(relativeIndex, 1 - this.getPrefHeight() / magnitude);
                     } else {
                         split.setDividerPosition(relativeIndex, this.getPrefHeight() / magnitude);
                     }

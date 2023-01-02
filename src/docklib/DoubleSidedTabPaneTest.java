@@ -105,7 +105,7 @@ public class DoubleSidedTabPaneTest extends Application {
         dockPane.dock(workspaceTabPane, DockAnchor.TOP);
         dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
         dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
-        dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
+        //dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
         dockPane.dock(systemTabPaneBottom, DockAnchor.BOTTOM);
 
         final Menu menu1 = new Menu("File");
@@ -133,7 +133,7 @@ public class DoubleSidedTabPaneTest extends Application {
         VBox.setVgrow(dockPane, Priority.ALWAYS);
 
         primaryStage.setTitle("Demo scene");
-        primaryStage.setScene(new Scene(vbox, 200, 500));
+        primaryStage.setScene(new Scene(vbox, 800, 500));
         primaryStage.sizeToScene();
 
         primaryStage.show();

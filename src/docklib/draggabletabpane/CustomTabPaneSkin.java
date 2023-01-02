@@ -127,6 +127,7 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         tabHeaderAreaClipRect = new Rectangle();
         tabHeaderArea = new TabHeaderArea();
         tabHeaderArea.setClip(tabHeaderAreaClipRect);
+        tabHeaderArea.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
         getChildren().add(tabHeaderArea);
         /*
         if (getSkinnable().getTabs().size() == 0) {
