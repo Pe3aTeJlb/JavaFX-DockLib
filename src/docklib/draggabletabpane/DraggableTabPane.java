@@ -1,11 +1,14 @@
 package docklib.draggabletabpane;
 
+import docklib.customsplitpane.CustomSplitPane;
+import docklib.customsplitpane.SplitPaneSkin;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockPane;
 import docklib.dock.Dockable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -68,22 +71,19 @@ public class DraggableTabPane extends TabPane implements Dockable {
         //Double-listener
         //when tabpane have no tabs and no FLOAT DETACHED tab, undock it
         haveDetachedTab = new SimpleBooleanProperty(false);
-        /*
+/*
         this.getTabs().addListener((ListChangeListener<Tab>) change -> {
             if(!haveDetachedTab.get() && this.getTabs().isEmpty()){
                 undock();
             }
         });
 
-
         haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
             if(oldVal && !newVal && this.getTabs().isEmpty()){
                 undock();
             }
         });
-
-         */
-
+*/
         this.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
 
         tabPanes.add(this);
@@ -132,7 +132,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
     //Dock interface
 
     private DockPane dockPane;
-    private SplitPane split;
+    private CustomSplitPane split;
 
     public boolean isWrappedInDockPane(){
         return this.dockPane != null;
@@ -140,7 +140,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     public void setDockPane(DockPane dockPane, SplitPane splitPane){
         this.dockPane = dockPane;
-        this.split = splitPane;
+        this.split = (CustomSplitPane) splitPane;
     }
 
     public DockPane getDockPane(){
@@ -207,16 +207,22 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if(isCollapsed())
             return;
 
-        if(isWrappedInDockPane() && !collapseOnInit){
+        if(isWrappedInDockPane()){
 
             double[] dividers = split.getDividerPositions();
             int relativeIndex = split.getItems().indexOf(this);
-            if(relativeIndex == split.getItems().size() - 1){
+            if (relativeIndex == split.getItems().size() - 1) {
                 relativeIndex -= 1;
             }
 
-            dividers[relativeIndex] = 1;
-            Platform.runLater(() -> split.setDividerPositions(dividers));
+            if(!collapseOnInit) {
+                dividers[relativeIndex] = 1;
+                Platform.runLater(() -> split.setDividerPositions(dividers));
+            }
+
+            SplitPaneSkin.ContentDivider divider = ((SplitPaneSkin)split.getSkin()).getContentDividers().get(relativeIndex);
+            divider.setPrefWidth(0);
+            divider.setVisible(false);
 
         }
 
@@ -300,6 +306,10 @@ public class DraggableTabPane extends TabPane implements Dockable {
                     }
 
                 }
+
+                SplitPaneSkin.ContentDivider divider = ((SplitPaneSkin)split.getSkin()).getContentDividers().get(relativeIndex);
+                divider.setPrefWidth(SplitPane.USE_COMPUTED_SIZE);
+                divider.setVisible(true);
 
             }
 

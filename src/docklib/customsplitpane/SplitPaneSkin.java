@@ -76,7 +76,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
 
     /**
      * Creates a new SplitPaneSkin instance, installing the necessary child
-     * nodes into the Control {@link Control#getChildren() children} list, as
+     * nodes into the Control {@link Control# getChildren() children} list, as
      * well as the necessary input mappings for handling key, mouse, etc events.
      *
      * @param control The control that this skin should be installed onto.
@@ -130,7 +130,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             return;
         }
 
-        double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
+        double dividerWidth = 0;
 
         if (contentDividers.size() > 0 && previousSize != -1 && previousSize != (horizontal ? sw  : sh)) {
             //This algorithm adds/subtracts a little to each panel on every resize
@@ -243,6 +243,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             ContentDivider previousDivider = null;
             ContentDivider divider = null;
             for (int i = 0; i < contentRegions.size(); i++) {
+
                 double space = 0;
                 if (i < contentDividers.size()) {
                     divider = contentDividers.get(i);
@@ -272,6 +273,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                     contentRegions.get(i).setArea(space);
                 }
                 previousDivider = divider;
+
             }
 
             // Compute the amount of space we have available.
@@ -726,7 +728,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
     }
 
     private double totalMinSize() {
-        double dividerWidth = !contentDividers.isEmpty() ? contentDividers.size() * contentDividers.get(0).prefWidth(-1) : 0;
+        double dividerWidth = !contentDividers.isEmpty() ? contentDividers.size() * contentDividers.get(0).prefWidth(0) : 0;
         double minSize = 0;
         for (Content c: contentRegions) {
             if (horizontal) {
@@ -854,7 +856,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
 
     private void setupContentAndDividerForLayout() {
         // Set all the value to prepare for layout
-        double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
+        double dividerWidth = 0;
         double startX = 0;
         double startY = 0;
         for (Content c: contentRegions) {
@@ -895,7 +897,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
         final double paddingX = snappedLeftInset();
         final double paddingY = snappedTopInset();
         final double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
-
+        double divWidth = 0;
         for (Content c: contentRegions) {
 //            System.out.println("LAYOUT " + c.getId() + " PANELS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? c.getArea() : width) + " H " + (horizontal ? height : c.getArea()));
             if (horizontal) {
@@ -909,15 +911,16 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             }
         }
         for (ContentDivider c: contentDividers) {
+            if (c.isVisible()) divWidth = c.prefWidth(-1);
 //            System.out.println("LAYOUT DIVIDERS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? dividerWidth : width) + " H " + (horizontal ? height : dividerWidth));
             if (horizontal) {
-                c.resize(dividerWidth, height);
-                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, dividerWidth, height,
-                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
+                c.resize(divWidth, height);
+                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, divWidth, height,
+                   0, HPos.CENTER, VPos.CENTER);
             } else {
-                c.resize(width, dividerWidth);
-                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, dividerWidth,
-                    /*baseline ignored*/0, HPos.CENTER, VPos.CENTER);
+                c.resize(width, divWidth);
+                positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, width, divWidth,
+                    0, HPos.CENTER, VPos.CENTER);
             }
         }
     }

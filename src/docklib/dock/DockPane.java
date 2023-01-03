@@ -1,6 +1,7 @@
 package docklib.dock;
 
 import com.sun.javafx.css.StyleManager;
+import docklib.customsplitpane.CustomSplitPane;
 import docklib.draggabletabpane.DraggableTab;
 import docklib.draggabletabpane.DraggableTabPane;
 import docklib.utils.IconsManager;
@@ -50,6 +51,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         public DockAnchorButton() {
             super();
             this.setMouseTransparent(true);
+            this.getStyleClass().add("node-dock-selector-button");
+            this.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), true);
         }
 
         public DockAnchorButton(DockAnchor dockAnchor) {
@@ -192,7 +195,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         SplitPane split = (SplitPane) root;
         if (split == null) {
-            split = new SplitPane();
+            split = new CustomSplitPane();
             split.getItems().add(node);
             if (node instanceof Dockable) {
                 ((Dockable) node).setDockPane(this, split);
@@ -233,7 +236,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         // if the orientation is different then reparent the split pane
         if (split.getOrientation() != requestedOrientation) {
             if (split.getItems().size() > 1) {
-                SplitPane splitPane = new SplitPane();
+                SplitPane splitPane = new CustomSplitPane();
                 if (split == root && neighbor == root) {
                     this.getChildren().set(this.getChildren().indexOf(root), splitPane);
                     splitPane.getItems().add(split);

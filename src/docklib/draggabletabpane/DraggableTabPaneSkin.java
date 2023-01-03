@@ -1196,7 +1196,8 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             }
             if (Math.abs(actualNewScrollOffset - scrollOffset) > 0.001) {
                 scrollOffset = actualNewScrollOffset;
-                headersRegion.requestLayout();
+                //headersRegion.requestLayout();
+                getSkinnable().requestLayout();
             }
         }
 

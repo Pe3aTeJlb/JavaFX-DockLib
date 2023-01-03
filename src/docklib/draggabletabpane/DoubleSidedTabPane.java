@@ -1,5 +1,6 @@
 package docklib.draggabletabpane;
 
+import docklib.customsplitpane.SplitPaneSkin;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockPane;
 import docklib.dock.Dockable;
@@ -70,16 +71,22 @@ public class DoubleSidedTabPane extends Control implements Dockable {
 
         if(leftTabPane.isCollapsed() && rightTabPane.isCollapsed()) {
 
-            if(isWrappedInDockPane() && !collapseOnInit){
+            if(isWrappedInDockPane()){
 
                 double[] dividers = split.getDividerPositions();
                 int relativeIndex = split.getItems().indexOf(this);
-                if(relativeIndex == split.getItems().size() - 1){
+                if (relativeIndex == split.getItems().size() - 1) {
                     relativeIndex -= 1;
                 }
 
-                dividers[relativeIndex] = 1;
-                Platform.runLater(() -> split.setDividerPositions(dividers));
+                if(!collapseOnInit) {
+                    dividers[relativeIndex] = 1;
+                    Platform.runLater(() -> split.setDividerPositions(dividers));
+                }
+
+                SplitPaneSkin.ContentDivider divider = ((SplitPaneSkin)split.getSkin()).getContentDividers().get(relativeIndex);
+                divider.setPrefWidth(0);
+                divider.setVisible(false);
 
             }
 
@@ -156,6 +163,10 @@ public class DoubleSidedTabPane extends Control implements Dockable {
                     }
 
                 }
+
+                SplitPaneSkin.ContentDivider divider = ((SplitPaneSkin)split.getSkin()).getContentDividers().get(relativeIndex);
+                divider.setPrefWidth(SplitPane.USE_COMPUTED_SIZE);
+                divider.setVisible(true);
 
             }
 
