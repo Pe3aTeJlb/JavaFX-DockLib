@@ -86,6 +86,7 @@ public class DoubleSidedTabPaneTest extends Application {
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);
+        workspaceTabPane.setUnDockable(false);
 
         DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));

@@ -14,7 +14,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -71,19 +70,19 @@ public class DraggableTabPane extends TabPane implements Dockable {
         //Double-listener
         //when tabpane have no tabs and no FLOAT DETACHED tab, undock it
         haveDetachedTab = new SimpleBooleanProperty(false);
-/*
+
         this.getTabs().addListener((ListChangeListener<Tab>) change -> {
-            if(!haveDetachedTab.get() && this.getTabs().isEmpty()){
+            if(!haveDetachedTab.get() && this.getTabs().isEmpty() && isWrappedInDockPane()){
                 undock();
             }
         });
 
         haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
-            if(oldVal && !newVal && this.getTabs().isEmpty()){
+            if(oldVal && !newVal && this.getTabs().isEmpty() && isWrappedInDockPane()){
                 undock();
             }
         });
-*/
+
         this.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
 
         tabPanes.add(this);
@@ -133,6 +132,23 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     private DockPane dockPane;
     private CustomSplitPane split;
+    private BooleanProperty unDockable;
+
+    public final void setUnDockable(boolean val){
+        this.unDockableProperty().set(val);
+    }
+
+    public final boolean getUnDockable(){
+        return this.unDockable == null ? false : this.unDockable.get();
+    }
+
+    public BooleanProperty unDockableProperty(){
+        if (this.unDockable == null) {
+            this.unDockable = new SimpleBooleanProperty(this, "unDockable", true);
+        }
+
+        return this.unDockable;
+    }
 
     public boolean isWrappedInDockPane(){
         return this.dockPane != null;
@@ -155,8 +171,9 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     public void undock(){
         haveDetachedTab.unbind();
-        if(dockPane != null){
+        if(dockPane != null && unDockable.get()){
             dockPane.undock(this);
+            tabPanes.remove(this);
         }
     }
 

@@ -31,6 +31,7 @@ public class Demo extends Application {
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);
+        workspaceTabPane.setUnDockable(false);
 
         DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", "icon.png", new TextArea());
         DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", "icon.png", new Rectangle(100, 100, Color.ROYALBLUE));
@@ -79,7 +80,7 @@ public class Demo extends Application {
 
         DockPane dockPane = new DockPane(false);
 
-        dockPane.dock(tabPane, DockAnchor.TOP);
+        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
 
         final Menu menu1 = new Menu("File");
         final Menu menu2 = new Menu("Options");

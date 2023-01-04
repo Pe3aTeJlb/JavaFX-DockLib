@@ -997,6 +997,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
                 }
 
             };
+            headersRegion.setManaged(false);
             headersRegion.getStyleClass().setAll("headers-region");
             headersRegion.setClip(headerClip);
             setupReordering(headersRegion);
@@ -1196,9 +1197,12 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             }
             if (Math.abs(actualNewScrollOffset - scrollOffset) > 0.001) {
                 scrollOffset = actualNewScrollOffset;
-                //headersRegion.requestLayout();
+                //IDK after maxSize change headersRegion.requestLayout do nothing, so u can't scroll tabpane header
+                //But if u add getSkinnable().requestLayout() after header request, it will work )
+                headersRegion.requestLayout();
                 getSkinnable().requestLayout();
             }
+
         }
 
         private double firstTabIndent() {

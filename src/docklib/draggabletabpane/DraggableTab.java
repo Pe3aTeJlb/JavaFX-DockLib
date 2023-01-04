@@ -7,6 +7,7 @@ import docklib.dock.DockPane;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.geometry.*;
 import javafx.scene.Node;
@@ -365,9 +366,7 @@ public class DraggableTab extends Tab {
                     if (addIndex > insertData.getInsertPane().getTabs().size()) {
                         addIndex = insertData.getInsertPane().getTabs().size();
                     }
-                    System.out.println("smt was added at index " + addIndex);
                     insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
-                    System.out.println(insertData.getInsertPane().getTabs());
                     insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
                     for(Tab tab: insertData.getInsertPane().getTabs()){
                         tab.setStyle("-fx-translate-x: 0;");
@@ -426,7 +425,6 @@ public class DraggableTab extends Tab {
     public void dockEventCallback(boolean docked, DockEvent event){
 
         callbackReceived = true;
-
         if(docked){
             //terminate float-stage if it is empty
             if(originTabPane.getTabs().isEmpty()){
@@ -573,19 +571,6 @@ public class DraggableTab extends Tab {
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
             pane.addTab(this);
 
-            newFloatStage.setOnHiding(hideEvent -> tabPanes.remove(pane));
-            pane.getTabs().addListener((ListChangeListener<Tab>) change -> {
-                if (pane.getTabs().isEmpty() && !detached.get()) {
-                    //calls when tabpane contains no tabs and have no detached floating tabs at the moment
-                    newFloatStage.close();
-                    newFloatStage.setScene(null);
-                    createNewFloatStage = true;
-                } else if (pane.getTabs().isEmpty() && detached.get()) {
-                    floatStage = newFloatStage;
-                    createNewFloatStage = false;
-                }
-            });
-
             DockPane newDockPane = new DockPane();
             newDockPane.dock(pane, DockAnchor.CENTER);
             newFloatStage.setScene(new Scene(newDockPane));
@@ -593,6 +578,20 @@ public class DraggableTab extends Tab {
             newFloatStage.setX(screenX);
             newFloatStage.setY(screenY);
             newFloatStage.show();
+
+            newDockPane.getChildren().addListener((ListChangeListener<Node>) change -> {
+
+                if(newDockPane.getChildren().isEmpty()){
+                    newFloatStage.close();
+                    newFloatStage.setScene(null);
+                    createNewFloatStage = true;
+                } else {
+                    floatStage = newFloatStage;
+                    createNewFloatStage = false;
+                }
+
+            });
+
             pane.requestLayout();
             pane.requestFocus();
 
@@ -604,6 +603,20 @@ public class DraggableTab extends Tab {
             floatStage.setX(screenX);
             floatStage.setY(screenY);
 
+        }
+
+    }
+
+    private void drawTree(Node parent, String dash){
+
+        System.out.println(dash + parent);
+        ObservableList<Node> children;
+        if (parent instanceof SplitPane) {
+            SplitPane split = (SplitPane) parent;
+            children = split.getItems();
+            for (Node n: children){
+                drawTree(n, dash+"    ");
+            }
         }
 
     }
