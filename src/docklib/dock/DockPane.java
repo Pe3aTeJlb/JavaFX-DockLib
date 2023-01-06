@@ -22,6 +22,7 @@ import javafx.stage.Popup;
 import javafx.stage.Window;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -29,7 +30,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     public static List<DockPane> dockPanes = new ArrayList<>();
 
-    private Node root;
+    private SplitPane root;
 
     private Popup winDockPopup, nodeDockPopup;
     private double CIRCLE_RADIUS = 100;
@@ -91,19 +92,17 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         StyleManager.getInstance()
                 .addUserAgentStylesheet(DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
-        DockPane.dockPanes.add(this);
 
         this.winInteractive = winInteractive;
 
         this.addEventHandler(DockEvent.ANY, this);
         this.addEventFilter(DockEvent.ANY, event -> {
-
             if (event.getEventType() == DockEvent.DOCK_ENTER) {
                 this.receivedEnter = true;
+                Collections.swap(dockPanes, dockPanes.indexOf(this), 0);
             } else if (event.getEventType() == DockEvent.DOCK_OVER) {
                 this.dockNodeTarget = null;
             }
-
         });
 
         //WinDockPopup
@@ -179,6 +178,13 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         winDockAreaIndicator.getStyleClass().add("dock-area-indicator");
         nodeDockAreaIndicator.getStyleClass().add("dock-area-indicator");
 
+        //this.getScene().getWindow().setOnHidden(event -> dockPanes.remove(this));
+        dockPanes.add(this);
+
+    }
+
+    public SplitPane getRoot(){
+        return root;
     }
 
     //Dock to neighboring Node
@@ -202,7 +208,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             }
             root = split;
             this.getChildren().add(root);
-
             return;
         }
 
@@ -343,37 +348,47 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                 if (children.get(i) == node) {
                     children.remove(i);
 
-                    // start from the root again and remove any SplitPane's with no children in them
-                    Stack<Parent> clearStack = new Stack<>();
-                    clearStack.push((Parent) root);
-                    while (!clearStack.isEmpty()) {
-                        parent = clearStack.pop();
-
-                        children = parent.getChildrenUnmodifiable();
-
-                        if (parent instanceof SplitPane) {
-                            SplitPane split = (SplitPane) parent;
-                            children = split.getItems();
-                        }
-
-                        for (i = 0; i < children.size(); i++) {
-                            if (children.get(i) instanceof SplitPane) {
-                                SplitPane split = (SplitPane) children.get(i);
-                                if (split.getItems().size() < 1) {
-                                    children.remove(i);
-                                    continue;
-                                } else {
-                                    clearStack.push(split);
-                                }
-                            }
-
-                        }
-                    }
-
+                    haveEmptyPanes(this);
+                    //drawTree(root, "");
                     return;
+
                 } else if (children.get(i) instanceof Parent) {
                     findStack.push((Parent) children.get(i));
                 }
+            }
+        }
+
+    }
+
+    private boolean haveEmptyPanes(Node parent){
+
+        ObservableList<Node> children ;
+
+        if (parent instanceof DockPane){
+            DockPane split = (DockPane) parent;
+            children = split.getChildren();
+            children.removeIf(this::haveEmptyPanes);
+            return children.isEmpty();
+        } else if (parent instanceof SplitPane) {
+            SplitPane split = (SplitPane) parent;
+            children = split.getItems();
+            children.removeIf(this::haveEmptyPanes);
+            return children.isEmpty();
+        } else {
+            return false;
+        }
+
+    }
+
+    private void drawTree(Node parent, String dash){
+
+        System.out.println(dash + parent);
+        ObservableList<Node> children;
+        if (parent instanceof SplitPane) {
+            SplitPane split = (SplitPane) parent;
+            children = split.getItems();
+            for (Node n: children){
+                drawTree(n, dash+"    ");
             }
         }
 
@@ -387,12 +402,25 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         dockNodeTarget = (Node) event.getTarget();
 
+        Node targetRoot = (Node) event.getTarget();
+        //check, if dockNo relate to this dockpane
+        while (!(targetRoot.getParent() instanceof DockPane)){
+            targetRoot = targetRoot.getParent();
+        }
+        targetRoot = targetRoot.getParent();
+        if(targetRoot != this) return;
+
+
         //Fine the parent like DockPane or DraggableTabPane for this target
         if(!(event.getTarget() instanceof DockPane) && !(event.getTarget() instanceof DraggableTabPane)) {
             while (!(dockNodeTarget.getParent() instanceof DockPane) && !(dockNodeTarget.getParent() instanceof DraggableTabPane)) {
                 dockNodeTarget = dockNodeTarget.getParent();
             }
             dockNodeTarget = dockNodeTarget.getParent();
+        }
+
+        if ((dockNodeTarget instanceof DraggableTabPane) && !((DraggableTabPane)dockNodeTarget).isUnDockable()){
+            return;
         }
 
         //if it is TabPane check tabgroup
@@ -453,6 +481,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                 showWinDockPopup(dockNodeTarget,dockAnchor);
             } else {
 
+                hideWinDockPopup();
+
                 // else check if we at node center
                 Point2D eventPos = new Point2D(event.getScreenX(), event.getScreenY());
                 Point2D dockTargetNodeCenter = new Point2D(
@@ -463,8 +493,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                 if(eventPos.distance(dockTargetNodeCenter) < CIRCLE_RADIUS){
                     showNodeDockPopup(dockNodeTarget, event);
                 } else {
-                    winDockPopup.hide();
-                    nodeDockPopup.hide();
+                    hideNodeDockPopup();
+                    hideWinDockPopup();
                 }
 
             }
@@ -474,10 +504,10 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         if (event.getEventType() == DockEvent.DOCK_RELEASED && event.getContents() != null) {
             //Dock to targetNode else to this pane
             if(nodeDockPopup.isShowing() && dockAnchor != null &&
-                    nodeDockSelector.contains(nodeDockSelector.screenToLocal(event.getScreenX(), event.getScreenY()))){
+                    nodeDockSelector.contains(nodeDockSelector.screenToLocal(event.getScreenX(), event.getScreenY()))) {
                 this.dock(event.getContents(), dockAnchor, dockNodeTarget);
                 ((DraggableTab)((DraggableTabPane)event.getContents()).getTabs().get(0)).dockEventCallback(true, event);
-            }else if(winDockPopup.isShowing() &&
+            } else if(winDockPopup.isShowing() &&
                     winDockAreaIndicator.contains(winDockAreaIndicator.screenToLocal(event.getScreenX(), event.getScreenY()))) {
                 this.dock(event.getContents(), dockAnchor);
                 ((DraggableTab)((DraggableTabPane)event.getContents()).getTabs().get(0)).dockEventCallback(true, event);
@@ -486,16 +516,14 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                 ((DraggableTab)((DraggableTabPane)event.getContents()).getTabs().get(0)).dockEventCallback(false, event);
             }
 
-            winDockPopup.hide();
-            winDockAreaIndicator.setVisible(false);
-            nodeDockPopup.hide();
-            nodeDockAreaIndicator.setVisible(false);
+            hideWinDockPopup();
+            hideNodeDockPopup();
 
         }
 
-        if ((event.getEventType() == DockEvent.DOCK_EXIT && !this.receivedEnter) || event.getEventType() == DockEvent.DOCK_RELEASED) {
-            winDockPopup.hide();
-            nodeDockPopup.hide();
+        if (event.getEventType() == DockEvent.DOCK_EXIT && !this.receivedEnter) {
+            hideWinDockPopup();
+            hideNodeDockPopup();
         }
 
     }
@@ -516,6 +544,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         if(!winInteractive)
             return;
+
+        hideNodeDockPopup();
 
         dockAnchorButton.setDockAnchor(dockAnchor);
 
@@ -574,7 +604,14 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     }
 
+    public void hideWinDockPopup(){
+        winDockPopup.hide();
+        winDockAreaIndicator.setVisible(false);
+    }
+
     public void showNodeDockPopup(Node dockNodeTarget, DockEvent event){
+
+        hideWinDockPopup();
 
         for (DockAnchorButton btn : gridPaneBtns) {
             if(btn.isVisible()) {
@@ -588,8 +625,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             }
         }
 
-       // nodeDockPopup.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
-       // nodeDockPopup.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
+        // nodeDockPopup.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
+        // nodeDockPopup.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
 
         double shitDragCountermeasure = 0.5;
 
@@ -655,6 +692,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                     dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds()).getMinY());
         }
 
+    }
+
+    public void hideNodeDockPopup(){
+        nodeDockPopup.hide();
+        nodeDockAreaIndicator.setVisible(false);
     }
 
 }

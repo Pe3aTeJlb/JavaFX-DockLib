@@ -138,8 +138,8 @@ public class DraggableTabPane extends TabPane implements Dockable {
         this.unDockableProperty().set(val);
     }
 
-    public final boolean getUnDockable(){
-        return this.unDockable == null ? false : this.unDockable.get();
+    public final boolean isUnDockable(){
+        return this.unDockable == null ? true : this.unDockable.get();
     }
 
     public BooleanProperty unDockableProperty(){
@@ -171,7 +171,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     public void undock(){
         haveDetachedTab.unbind();
-        if(dockPane != null && unDockable.get()){
+        if(dockPane != null && isUnDockable()){
             dockPane.undock(this);
             tabPanes.remove(this);
         }

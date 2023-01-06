@@ -29,12 +29,13 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static docklib.dock.DockPane.dockPanes;
 import static docklib.draggabletabpane.DraggableTabPane.tabPanes;
 
 /* !!!Warning!!!
-* This realisation doesn't use initOwner() to share window lifecycle cause then we can't minimize detached tabs,
-* so, u have to write u own frame/window manager to handle this problem or just accept this fact
-*/
+ * This realisation doesn't use initOwner() to share window lifecycle cause then we can't minimize detached tabs,
+ * so, u have to write u own frame/window manager to handle this problem or just accept this fact
+ */
 public class DraggableTab extends Tab {
 
     private Label tabLabel;
@@ -114,7 +115,6 @@ public class DraggableTab extends Tab {
         StackPane.setAlignment(dragText, Pos.CENTER);
         dragStagePane.getChildren().add(dragText);
         dragStage.setScene(new Scene(dragStagePane));
-
 
 
         //Define drag events
@@ -352,13 +352,14 @@ public class DraggableTab extends Tab {
                 int oldIndex = originIndex;
 
                 InsertData insertData = getInsertData(screenPoint);
-
                 if (insertData != null && tabGroup == insertData.getInsertPane().getTabGroup()
                         && originTabPane.sameProject(insertData.getInsertPane())) {
                     int addIndex = insertData.getIndex();
+                    /*
                     if(oldTabPane == insertData.getInsertPane() && oldTabPane.getTabs().size() == 1) {
+                        //TODO
                         return;
-                    }
+                    }*/
                     oldTabPane.getTabs().remove(DraggableTab.this);
                     if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
                         //addIndex--;
@@ -457,6 +458,69 @@ public class DraggableTab extends Tab {
 
     }
 
+    private void pickEventTarget(Point2D screenPoint, EventTask eventTask, Event explicit) {
+
+        for (DockPane dockPane: dockPanes){
+
+            if(dockPane.getScene() == null) {
+                continue;
+            }
+
+            Window window = dockPane.getScene().getWindow();
+            if (!(window instanceof Stage)) continue;
+            Stage targetStage = (Stage) window;
+
+            eventTask.reset();
+
+            Parent root = targetStage.getScene().getRoot();
+            Node dragNode = dragNodes.get(targetStage);
+
+            if(root.contains(root.screenToLocal(screenPoint))
+                    && !root.isMouseTransparent()) {
+
+                //System.out.println("            contains " + dockPane);
+
+                Stack<Parent> stack = new Stack<>();
+                stack.push(root);
+
+                // depth first traversal to find the deepest node or parent with no children
+                // that intersects the point of interest
+                while (!stack.isEmpty()) {
+                    Parent parent = stack.pop();
+                    // if this parent contains the mouse click in screen coordinates in its local bounds
+                    // then traverse its children
+                    boolean notFired = true;
+                    for (Node node : parent.getChildrenUnmodifiable()) {
+                        if (node.contains(node.screenToLocal(screenPoint)) && !node.isMouseTransparent()) {
+                            if (node instanceof Parent) {
+                                stack.push((Parent) node);
+                            } else {
+                                eventTask.run(node, dragNode);
+                            }
+                            notFired = false;
+                            break;
+                        }
+                    }
+                    // if none of the children fired the event or there were no children
+                    // fire it with the parent as the target to receive the event
+                    if (notFired) {
+                        eventTask.run(parent, dragNode);
+                    }
+                }
+
+                return;
+            }
+
+            if (explicit != null && dragNode != null && eventTask.getExecutions() < 1) {
+                Event.fireEvent(dragNode, explicit.copyFor(this, dragNode));
+                dragNodes.put(targetStage, null);
+            }
+
+        }
+
+    }
+
+    /*
     private void pickEventTarget(Point2D location, EventTask eventTask, Event explicit) {
 
         List<DockPane> dockPanes = new ArrayList<>(DockPane.dockPanes);
@@ -520,6 +584,7 @@ public class DraggableTab extends Tab {
         }
 
     }
+     */
 
     public void fireDockEvent(MouseEvent event, DraggableTabPane draggableTabPane){
 
@@ -638,6 +703,7 @@ public class DraggableTab extends Tab {
 
             Rectangle2D headerScreenBounds = getAbsoluteRect(tabPane);
             if(headerScreenBounds.contains(screenPoint)) {
+
                 int tabInsertIndex = 0;
 
                 if(!tabPane.getTabs().isEmpty()) {
@@ -860,9 +926,9 @@ public class DraggableTab extends Tab {
     }
 
     private boolean betweenY(Rectangle2D r1, Rectangle2D r2, double YPoint) {
-            double lowerBound = r1.getMinY() + r1.getHeight() / 2;
-            double upperBound = r2.getMinY() + r2.getHeight() / 2;
-            return YPoint >= lowerBound && YPoint <= upperBound;
+        double lowerBound = r1.getMinY() + r1.getHeight() / 2;
+        double upperBound = r2.getMinY() + r2.getHeight() / 2;
+        return YPoint >= lowerBound && YPoint <= upperBound;
     }
 
     private static class InsertData {
