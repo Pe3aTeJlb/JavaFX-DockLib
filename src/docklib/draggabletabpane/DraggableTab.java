@@ -1,6 +1,5 @@
 package docklib.draggabletabpane;
 
-import docklib.utils.IconsManager;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockEvent;
 import docklib.dock.DockPane;
@@ -14,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -79,11 +79,15 @@ public class DraggableTab extends Tab {
         this(text, null, null);
     }
 
-    public DraggableTab(String text, String iconName) {
-        this(text, iconName, null);
+    public DraggableTab(String text, ImageView image) {
+        this(text, image, null);
     }
 
-    public DraggableTab(String text, String iconName, Node content) {
+    public DraggableTab(String text, Node content) {
+        this(text, null, content);
+    }
+
+    public DraggableTab(String text, ImageView image, Node content) {
 
         /*
         originTabPane = tabPane;
@@ -94,8 +98,8 @@ public class DraggableTab extends Tab {
         detached = new SimpleBooleanProperty(false);
 
         tabLabel = new Label(text);
-        if(iconName != null) {
-            tabLabel.setGraphic(IconsManager.getImageView(iconName));
+        if(image != null) {
+            tabLabel.setGraphic(image);
         }
         setGraphic(tabLabel);
 
@@ -108,8 +112,8 @@ public class DraggableTab extends Tab {
         //dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
 
         dragText = new Label(text);
-        if(iconName != null) {
-            dragText.setGraphic(IconsManager.getImageView(iconName));
+        if(image != null) {
+            dragText.setGraphic(image);
         }
 
         StackPane.setAlignment(dragText, Pos.CENTER);
