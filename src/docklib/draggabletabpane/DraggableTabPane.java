@@ -58,7 +58,9 @@ public class DraggableTabPane extends TabPane implements Dockable {
             this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
             if(collapseOnInit) {
-                layoutListener = change -> collapse();
+                layoutListener = change -> {
+                    collapse();
+                };
                 skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
                 this.skinProperty().addListener(skinListener);
             }
@@ -71,17 +73,21 @@ public class DraggableTabPane extends TabPane implements Dockable {
         //when tabpane have no tabs and no FLOAT DETACHED tab, undock it
         haveDetachedTab = new SimpleBooleanProperty(false);
 
-        this.getTabs().addListener((ListChangeListener<Tab>) change -> {
-            if(!haveDetachedTab.get() && this.getTabs().isEmpty() && isWrappedInDockPane()){
-                undock();
-            }
-        });
+        if (tabGroup != TabGroup.System) {
 
-        haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
-            if(oldVal && !newVal && this.getTabs().isEmpty() && isWrappedInDockPane()){
-                undock();
-            }
-        });
+            this.getTabs().addListener((ListChangeListener<Tab>) change -> {
+                if (!haveDetachedTab.get() && this.getTabs().isEmpty() && isWrappedInDockPane()) {
+                    undock();
+                }
+            });
+
+            haveDetachedTab.addListener((observableValue, oldVal, newVal) -> {
+                if (oldVal && !newVal && this.getTabs().isEmpty() && isWrappedInDockPane()) {
+                    undock();
+                }
+            });
+
+        }
 
         this.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
 

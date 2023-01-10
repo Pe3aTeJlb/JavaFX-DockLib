@@ -162,6 +162,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
     private double xDash, yDash;
     private double alternativeHeaderSize;
     private double alternativeMultiplier;
+    private double initHeaderHeight;
 
     /***************************************************************************
      *                                                                         *
@@ -235,6 +236,9 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
         isSelectingTab = false;
 
         initializeSwipeHandlers();
+
+        initHeaderHeight = new TabHeaderSkin(new Tab("")).prefHeight(-1) + 7;
+
     }
 
 
@@ -338,14 +342,26 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
     /** {@inheritDoc} */
     @Override protected void layoutChildren(final double x, final double y,
                                             final double w, final double h) {
+
         DraggableTabPane tabPane = getSkinnable();
         Side tabPosition = tabPane.getSide();
 
-        double headerHeight = getSkinnable().getTabs().isEmpty()
-                ? tabHeaderArea.headerBackground.getHeight()
-                : tabPosition.isHorizontal()
-                    ? snapSizeY(tabHeaderArea.prefHeight(-1))
-                    : snapSizeX(tabHeaderArea.prefHeight(-1));
+        double headerHeight;
+
+        if (getSkinnable().getTabs().isEmpty()){
+            if (tabHeaderArea.headerBackground.getHeight() == 0 && initHeaderHeight != 0){
+                headerHeight = initHeaderHeight;
+                initHeaderHeight = 0;
+            } else {
+                headerHeight = tabHeaderArea.headerBackground.getHeight();
+            }
+        } else {
+            if (tabPosition.isHorizontal()){
+                headerHeight = snapSizeY(tabHeaderArea.prefHeight(-1));
+            } else {
+                headerHeight = snapSizeX(tabHeaderArea.prefHeight(-1));
+            }
+        }
         double tabsStartX = tabPosition.equals(Side.RIGHT)? x + w - headerHeight : x;
         double tabsStartY = tabPosition.equals(Side.BOTTOM)? y + h - headerHeight : y;
 
@@ -1097,6 +1113,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
         private void addTab(Tab tab, int addToIndex) {
             TabHeaderSkin tabHeaderSkin = new TabHeaderSkin(tab);
             headersRegion.getChildren().add(addToIndex, tabHeaderSkin);
+            requestLayout();
         }
 
         private void removeTab(Tab tab) {
@@ -1321,7 +1338,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
     }
 
     public double getTabHeaderAreaHeight(){
-        return tabHeaderAreaClipRect.getHeight();
+        return tabHeaderArea.getHeight();
     }
 
     public ReadOnlyDoubleProperty getSkinWidthProperty(){
@@ -1563,7 +1580,7 @@ public class DraggableTabPaneSkin extends SkinBase<DraggableTabPane> implements 
             listener.registerChangeListener(tab.disabledProperty(), e -> {
                 updateTabDisabledState();
             });
-            listener.registerChangeListener(tab.getTabPane().disabledProperty(), e -> {
+            listener.registerChangeListener(getSkinnable().disabledProperty(), e -> {
                 updateTabDisabledState();
             });
             listener.registerChangeListener(tab.styleProperty(), e -> setStyle(tab.getStyle()));
