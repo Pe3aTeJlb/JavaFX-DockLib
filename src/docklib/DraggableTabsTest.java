@@ -32,8 +32,8 @@ public class DraggableTabsTest extends Application {
         systemTabPaneLeft.setSide(Side.LEFT);
         systemTabPaneLeft.setRotateGraphic(true);
 
-        DraggableTab tab1 = new DraggableTab("", IconsManager.getImageView("icon.png"), generateRandomTree());
-        DraggableTab tab2 = new DraggableTab("System Tab 2", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.AQUA));
+        DraggableTab tab1 = new DraggableTab("", IconsManager.getImage("icon.png"), generateRandomTree());
+        DraggableTab tab2 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.AQUA));
 
         systemTabPaneLeft.addAll(
                 tab1,
@@ -45,8 +45,8 @@ public class DraggableTabsTest extends Application {
         systemTabPaneRight.setSide(Side.RIGHT);
         systemTabPaneRight.setRotateGraphic(true);
 
-        DraggableTab tab21 = new DraggableTab("System Tab 5", IconsManager.getImageView("icon.png"), generateRandomTree());
-        DraggableTab tab22 = new DraggableTab("System Tab 6", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.BLANCHEDALMOND));
+        DraggableTab tab21 = new DraggableTab("System Tab 5", IconsManager.getImage("icon.png"), generateRandomTree());
+        DraggableTab tab22 = new DraggableTab("System Tab 6", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.BLANCHEDALMOND));
 
         systemTabPaneRight.addAll(
                 tab21,
@@ -59,15 +59,15 @@ public class DraggableTabsTest extends Application {
         systemTabPaneBottom.setSide(Side.BOTTOM);
         systemTabPaneBottom.setRotateGraphic(true);
 
-        DraggableTab tab31 = new DraggableTab("System Tab 9", IconsManager.getImageView("icon.png"), new TextArea());
-        DraggableTab tab32 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab33 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab34 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab35 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab36 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab37 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab38 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab39 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab31 = new DraggableTab("System Tab 9", IconsManager.getImage("icon.png"), new TextArea());
+        DraggableTab tab32 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab33 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab34 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab35 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab36 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab37 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab38 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab39 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
 
         systemTabPaneBottom.addAll(
                 tab31,
@@ -86,9 +86,9 @@ public class DraggableTabsTest extends Application {
         systemTabPaneTop.setSide(Side.TOP);
         systemTabPaneTop.setRotateGraphic(true);
 
-        DraggableTab tab313 = new DraggableTab("System Tab 9", IconsManager.getImageView("icon.png"), new TextArea());
-        DraggableTab tab323 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
-        DraggableTab tab333 = new DraggableTab("System Tab 10", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab313 = new DraggableTab("System Tab 9", IconsManager.getImage("icon.png"), new TextArea());
+        DraggableTab tab323 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
+        DraggableTab tab333 = new DraggableTab("System Tab 10", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.CORNSILK));
 
         systemTabPaneTop.getTabs().addAll(
                 tab313,
@@ -102,10 +102,10 @@ public class DraggableTabsTest extends Application {
         workspaceTabPane.setRotateGraphic(true);
         workspaceTabPane.setUnDockable(false);
 
-        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImageView("icon.png"), new TextArea());
-        DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
-        DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
-        DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ORANGE));
+        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
+        DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ORANGE));
 
         workspaceTabPane.addAll(
                 tab410,

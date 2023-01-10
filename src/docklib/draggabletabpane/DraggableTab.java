@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.MouseButton;
@@ -79,7 +80,7 @@ public class DraggableTab extends Tab {
         this(text, null, null);
     }
 
-    public DraggableTab(String text, ImageView image) {
+    public DraggableTab(String text, Image image) {
         this(text, image, null);
     }
 
@@ -87,7 +88,7 @@ public class DraggableTab extends Tab {
         this(text, null, content);
     }
 
-    public DraggableTab(String text, ImageView image, Node content) {
+    public DraggableTab(String text, Image image, Node content) {
 
         /*
         originTabPane = tabPane;
@@ -99,9 +100,9 @@ public class DraggableTab extends Tab {
 
         tabLabel = new Label(text);
         if(image != null) {
-            tabLabel.setGraphic(image);
+            tabLabel.setGraphic(new ImageView(image));
         }
-        setGraphic(tabLabel);
+        this.setGraphic(tabLabel);
 
         //Prepare dragStage, which shown when tab dragged
         dragStage = new Stage();
@@ -113,7 +114,7 @@ public class DraggableTab extends Tab {
 
         dragText = new Label(text);
         if(image != null) {
-            dragText.setGraphic(image);
+            dragText.setGraphic(new ImageView(image));
         }
 
         StackPane.setAlignment(dragText, Pos.CENTER);

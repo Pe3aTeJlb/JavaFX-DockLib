@@ -34,10 +34,10 @@ public class Demo extends Application {
         workspaceTabPane.setRotateGraphic(true);
         workspaceTabPane.setUnDockable(false);
 
-        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImageView("icon.png"), new TextArea());
-        DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
-        DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
-        DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImageView("icon.png"), new Rectangle(100, 100, Color.ORANGE));
+        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
+        DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
+        DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ORANGE));
 
         workspaceTabPane.addAll(
                 tab410,
