@@ -3,6 +3,7 @@ package docklib.draggabletabpane;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockEvent;
 import docklib.dock.DockPane;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
@@ -86,6 +87,14 @@ public class DraggableTab extends Tab {
 
     public DraggableTab(String text, Node content) {
         this(text, null, content);
+    }
+
+    public DraggableTab(StringBinding binding, Image image, Node content){
+
+        this("", image, content);
+        tabLabel.textProperty().bind(binding);
+        dragText.textProperty().bind(binding);
+
     }
 
     public DraggableTab(String text, Image image, Node content) {
