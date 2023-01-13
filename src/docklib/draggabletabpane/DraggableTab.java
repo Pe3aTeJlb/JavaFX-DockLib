@@ -268,9 +268,6 @@ public class DraggableTab extends Tab {
             if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
-            if(!detached.get())
-                return;
-
             dragStage.setX(event.getScreenX() - dragStage.getWidth() / 2);
             dragStage.setY(event.getScreenY() - dragStage.getHeight() / 2);
 
@@ -368,6 +365,9 @@ public class DraggableTab extends Tab {
         originTabPane.setOnMouseReleased(event -> {
 
             if(event.getButton() != MouseButton.PRIMARY)
+                return;
+
+            if(!detached.get())
                 return;
 
             dragStage.hide();
