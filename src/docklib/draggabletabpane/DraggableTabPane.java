@@ -208,16 +208,16 @@ public class DraggableTabPane extends TabPane implements Dockable {
     }
 
     public Object getProject(){
-        return projectProperty.get();
+        return projectProperty().get();
     }
 
     public boolean sameProject(DraggableTabPane draggableTabPane){
-        return draggableTabPane.sameProject(this.projectProperty);
+        return draggableTabPane.sameProject(projectProperty().get());
     }
 
     private boolean sameProject(Object project){
-        //return projectProperty().get() == project;
-        return true;
+        return projectProperty().get() == project;
+        //return true;
     }
 
 
