@@ -140,7 +140,7 @@ public class DraggableTab extends Tab {
 
         //Detach tab from tabpane
         tabLabel.setOnMouseDragged(event -> {
-
+            System.out.println("dragged");
             if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
@@ -193,7 +193,7 @@ public class DraggableTab extends Tab {
 
         /*Detach/Attach logic*/
         tabLabel.setOnMousePressed(event -> {
-
+            System.out.println("pressed");
             if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
@@ -291,6 +291,8 @@ public class DraggableTab extends Tab {
             //Create slide animation in pointed tabPane
             if (data != null && !data.getInsertPane().getTabs().isEmpty()) {
 
+                System.out.println("insert");
+
                 if(tabGroup != data.getInsertPane().getTabGroup()){
                     return;
                 }
@@ -326,6 +328,8 @@ public class DraggableTab extends Tab {
                 }
 
             } else if(tabGroup != TabGroup.System){
+
+                System.out.println("dock");
                 //Dock events
                 DockEvent dockEnterEvent =
                         new DockEvent(this, DockEvent.NULL_SOURCE_TARGET, DockEvent.DOCK_ENTER, event.getX(),
@@ -368,6 +372,9 @@ public class DraggableTab extends Tab {
         originTabPane.setOnMouseReleased(event -> {
 
             if(event.getButton() != MouseButton.PRIMARY)
+                return;
+
+            if (!detached.get())
                 return;
 
             dragStage.hide();
