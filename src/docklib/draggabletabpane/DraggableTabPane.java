@@ -204,7 +204,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
     }
 
     public void setProject(Object project){
-        this.projectProperty.set(project);
+        projectProperty().set(project);
     }
 
     public Object getProject(){
