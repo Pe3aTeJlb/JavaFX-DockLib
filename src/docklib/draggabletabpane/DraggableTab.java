@@ -429,6 +429,7 @@ public class DraggableTab extends Tab {
                     //to check if it relate to the same project
                     DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                     draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                    if(originTabPane.getProject() != null) draggableTabPane.setProject(originTabPane.getProject());
                     draggableTabPane.addTab(this);
 
                     fireDockEvent(event, draggableTabPane);
@@ -505,8 +506,6 @@ public class DraggableTab extends Tab {
 
             if(root.contains(root.screenToLocal(screenPoint))
                     && !root.isMouseTransparent()) {
-
-                //System.out.println("            contains " + dockPane);
 
                 Stack<Parent> stack = new Stack<>();
                 stack.push(root);
@@ -665,6 +664,7 @@ public class DraggableTab extends Tab {
 
             final DraggableTabPane pane = new DraggableTabPane(tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+            if(originTabPane.getProject() != null) pane.setProject(originTabPane.getProject());
             pane.addTab(this);
 
             DockPane newDockPane = new DockPane();
@@ -1230,6 +1230,7 @@ public class DraggableTab extends Tab {
                 tabPaneRef.get().getTabs().remove(tab);
                 DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);
                 tabPaneRef.get().dock(draggableTabPane, DockAnchor.BOTTOM);
             });
@@ -1239,6 +1240,7 @@ public class DraggableTab extends Tab {
                 tabPaneRef.get().getTabs().remove(tab);
                 DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+                if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);
                 tabPaneRef.get().dock(draggableTabPane, DockAnchor.RIGHT);
             });

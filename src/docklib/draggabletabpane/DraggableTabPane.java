@@ -73,7 +73,6 @@ public class DraggableTabPane extends TabPane implements Dockable {
                     ((Stage)this.getScene().getWindow()).titleProperty().bind(
                             ((DraggableTab)getSelectionModel().getSelectedItem()).getStageTitle());
                 }
-                System.out.println("clicked " + this);
             });
         }
 
