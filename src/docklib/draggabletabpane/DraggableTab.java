@@ -3,6 +3,7 @@ package docklib.draggabletabpane;
 import docklib.dock.DockAnchor;
 import docklib.dock.DockEvent;
 import docklib.dock.DockPane;
+import docklib.utils.IconsManager;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -646,6 +647,7 @@ public class DraggableTab extends Tab {
         if(createNewFloatStage) {
 
             final Stage newFloatStage = new Stage();
+            newFloatStage.getIcons().add(IconsManager.StageIcon);
             final DraggableTabPane pane = new DraggableTabPane(tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
             pane.addTab(this);
@@ -1096,6 +1098,7 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
+            floatStage.getIcons().add(IconsManager.StageIcon);
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -1130,6 +1133,7 @@ public class DraggableTab extends Tab {
             ((DraggableTabPane)tab.getTabPane()).collapse();
 
             floatStage = new Stage();
+            floatStage.getIcons().add(IconsManager.StageIcon);
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
