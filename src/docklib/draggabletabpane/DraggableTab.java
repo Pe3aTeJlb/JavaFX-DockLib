@@ -6,6 +6,7 @@ import docklib.dock.DockPane;
 import docklib.utils.IconsManager;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -43,6 +44,7 @@ public class DraggableTab extends Tab {
 
     private Label tabLabel;
     private Label dragText;
+    private SimpleStringProperty stageTitle = new SimpleStringProperty();
 
     //Tech stage for event handling
     private Stage dragStage;
@@ -93,6 +95,7 @@ public class DraggableTab extends Tab {
     public DraggableTab(StringBinding binding, Image image, Node content){
 
         this("", image, content);
+        stageTitle.bind(binding);
         tabLabel.textProperty().bind(binding);
         dragText.textProperty().bind(binding);
 
@@ -108,6 +111,7 @@ public class DraggableTab extends Tab {
 
         detached = new SimpleBooleanProperty(false);
 
+        stageTitle.set(text);
         tabLabel = new Label(text);
         if(image != null) {
             tabLabel.setGraphic(new ImageView(image));
@@ -224,7 +228,11 @@ public class DraggableTab extends Tab {
         });
 
         this.setContent(content);
-
+        this.getContent().setOnMouseClicked(event -> {
+            if (((DraggableTabPane)getTabPane()).isUnDockable() && (getTabPane().getScene().getWindow() instanceof Stage)){
+                ((Stage)getTabPane().getScene().getWindow()).titleProperty().bind(stageTitle);
+            }
+        });
     }
 
     public void collapseSystemTab(){
@@ -270,6 +278,7 @@ public class DraggableTab extends Tab {
 
             Point2D screenPoint = new Point2D(event.getScreenX(), event.getScreenY());
             InsertData data = getInsertData(screenPoint);
+
             //reset tab css in last pointed tabPane
             if(data == null || data.getInsertPane().getTabs().isEmpty()) {
                 if(lastInsertPane != null) {
@@ -283,6 +292,10 @@ public class DraggableTab extends Tab {
             if (data != null && !data.getInsertPane().getTabs().isEmpty()) {
 
                 if(tabGroup != data.getInsertPane().getTabGroup()){
+                    return;
+                }
+
+                if (!originTabPane.sameProject(data.getInsertPane())){
                     return;
                 }
 
@@ -648,6 +661,8 @@ public class DraggableTab extends Tab {
 
             final Stage newFloatStage = new Stage();
             newFloatStage.getIcons().add(IconsManager.StageIcon);
+            newFloatStage.titleProperty().bind(stageTitle);
+
             final DraggableTabPane pane = new DraggableTabPane(tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
             pane.addTab(this);
@@ -995,6 +1010,18 @@ public class DraggableTab extends Tab {
         return tabLabel;
     }
 
+    public void setStageTitle(String text){
+        stageTitle.set(text);
+    }
+
+    public void setStageTitle(StringBinding textBind){
+        stageTitle.bind(textBind);
+    }
+
+    public SimpleStringProperty getStageTitle() {
+        return stageTitle;
+    }
+
 
     private class DraggableTabContextMenu extends ContextMenu{
 
@@ -1099,6 +1126,7 @@ public class DraggableTab extends Tab {
 
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
+            floatStage.titleProperty().bind(stageTitle);
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -1134,6 +1162,7 @@ public class DraggableTab extends Tab {
 
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
+            floatStage.titleProperty().bind(stageTitle);
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);

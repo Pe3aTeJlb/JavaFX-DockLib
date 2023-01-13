@@ -18,6 +18,10 @@ public class DoubleSidedTabPane extends Control implements Dockable {
     private double prefExpandedSize = 200;
 
     public DoubleSidedTabPane(){
+        this(null);
+    }
+
+    public DoubleSidedTabPane(Object project){
 
         super();
 
@@ -28,6 +32,11 @@ public class DoubleSidedTabPane extends Control implements Dockable {
         rightTabPane = new DraggableTabPane(TabGroup.System);
         rightTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         rightTabPane.setRotateGraphic(true);
+
+        if (project != null){
+            leftTabPane.setProject(project);
+            rightTabPane.setProject(project);
+        }
 
         setSelectionModel(leftTabPane.getSelectionModel());
 

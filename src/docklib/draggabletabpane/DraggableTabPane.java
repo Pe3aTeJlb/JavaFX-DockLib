@@ -13,6 +13,7 @@ import javafx.geometry.NodeOrientation;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -67,6 +68,13 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
         } else {
             this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+            this.setOnMouseClicked(event -> {
+                if (isUnDockable() && (this.getScene().getWindow() instanceof Stage)){
+                    ((Stage)this.getScene().getWindow()).titleProperty().bind(
+                            ((DraggableTab)getSelectionModel().getSelectedItem()).getStageTitle());
+                }
+                System.out.println("clicked " + this);
+            });
         }
 
         //Double-listener
