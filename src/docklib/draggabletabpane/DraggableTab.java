@@ -1027,6 +1027,11 @@ public class DraggableTab extends Tab {
         Event.fireEvent(this, new Event(Tab.CLOSED_EVENT));
     }
 
+    static Map<String, StringBinding> localizationPack = null;
+
+    public static void setLocalizationPack(Map<String, StringBinding> locale){
+        localizationPack = locale;
+    }
 
     private class DraggableTabContextMenu extends ContextMenu{
 
@@ -1082,6 +1087,13 @@ public class DraggableTab extends Tab {
                 tab.getTabPane().getTabs().remove(tab);
                 Event.fireEvent(tab, new Event(Tab.CLOSED_EVENT));
             });
+
+            if (localizationPack != null){
+                dockPinnedItem.textProperty().bind(localizationPack.get("dockPinnedItem"));
+                floatItem.textProperty().bind(localizationPack.get("floatItem"));
+                windowItem.textProperty().bind(localizationPack.get("windowItem"));
+                closeItem.textProperty().bind(localizationPack.get("closeItem"));
+            }
 
             this.getItems().addAll(
                     dockPinnedItem,
@@ -1300,13 +1312,25 @@ public class DraggableTab extends Tab {
             });
             selectPreviousTabItem.setAccelerator(KeyCodeCombination.keyCombination("Alt+Left"));
 
+            if (localizationPack != null){
+                closeItem.textProperty().bind(localizationPack.get("closeItem"));
+                closeOthersItem.textProperty().bind(localizationPack.get("closeOthersItem"));
+                closeAllItems.textProperty().bind(localizationPack.get("closeAllItems"));
+                closeToTheLeftItem.textProperty().bind(localizationPack.get("closeToTheLeftItem"));
+                closeToTheRightItem.textProperty().bind(localizationPack.get("closeToTheRightItem"));
+                splitVerticallyItem.textProperty().bind(localizationPack.get("splitVerticallyItem"));
+                splitHorizontallyItem.textProperty().bind(localizationPack.get("splitHorizontallyItem"));
+                selectNextTabItem.textProperty().bind(localizationPack.get("selectNextTabItem"));
+                selectPreviousTabItem.textProperty().bind(localizationPack.get("selectPreviousTabItem"));
+            }
+
             this.setOnShowing(event ->{
                 tabPaneRef.set((DraggableTabPane) this.tab.getTabPane());
                 closeOthersItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
                 closeToTheLeftItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == 0);
                 closeToTheRightItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == tabPaneRef.get().getTabs().size()-1);
-                splitVerticallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
-                splitHorizontallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
+                splitVerticallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || !tabPaneRef.get().isUnDockable() || tabPaneRef.get().getTabs().size() == 1);
+                splitHorizontallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || !tabPaneRef.get().isUnDockable() || tabPaneRef.get().getTabs().size() == 1);
                 selectNextTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
                 selectPreviousTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
             });
