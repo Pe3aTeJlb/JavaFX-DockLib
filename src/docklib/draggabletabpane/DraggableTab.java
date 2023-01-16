@@ -27,10 +27,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static docklib.dock.DockPane.dockPanes;
@@ -108,7 +105,6 @@ public class DraggableTab extends Tab {
         tabGroup = tabPane.getTabGroup();
         detachable = tabGroup != TabGroup.System;
          */
-
         detached = new SimpleBooleanProperty(false);
 
         stageTitle.set(text);
@@ -265,6 +261,10 @@ public class DraggableTab extends Tab {
 
         originTabPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
 
+            if (!detached.get()){
+                return;
+            }
+
             if(event.getButton() != MouseButton.PRIMARY)
                 return;
 
@@ -355,7 +355,6 @@ public class DraggableTab extends Tab {
                         dockExitEvent);
 
             }
-
         });
 
     }
@@ -1022,6 +1021,12 @@ public class DraggableTab extends Tab {
         return stageTitle;
     }
 
+    public void close(){
+        Event.fireEvent(this, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+        getTabPane().getTabs().remove(this);
+        Event.fireEvent(this, new Event(Tab.CLOSED_EVENT));
+    }
+
 
     private class DraggableTabContextMenu extends ContextMenu{
 
@@ -1071,9 +1076,11 @@ public class DraggableTab extends Tab {
 
             MenuItem closeItem = new MenuItem("close");
             closeItem.setOnAction(event -> {
+                Event.fireEvent(tab, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
                 terminateFloatStage(null);
                 tab.getTabPane().focusedProperty().removeListener(focusListener);
                 tab.getTabPane().getTabs().remove(tab);
+                Event.fireEvent(tab, new Event(Tab.CLOSED_EVENT));
             });
 
             this.getItems().addAll(
@@ -1200,29 +1207,54 @@ public class DraggableTab extends Tab {
         public void populateWorkspaceMenu(){
 
             MenuItem closeItem = new MenuItem("Close");
-            closeItem.setOnAction(event -> tabPaneRef.get().getTabs().remove(tab));
+            closeItem.setOnAction(event -> {
+                Event.fireEvent(tab, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+                tabPaneRef.get().getTabs().remove(tab);
+                Event.fireEvent(tab, new Event(Tab.CLOSED_EVENT));
+            });
 
             MenuItem closeOthersItem = new MenuItem("Close others");
             closeOthersItem.setOnAction(event -> {
-                tabPaneRef.get().getTabs().clear();
-                tabPaneRef.get().getTabs().add(tab);
+                ArrayList<Tab> tabsToClose = new ArrayList<>(tabPaneRef.get().getTabs());
+                for (Tab t: tabsToClose){
+                    if (t != tab){
+                        Event.fireEvent(t, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+                        tabPaneRef.get().getTabs().remove(t);
+                        Event.fireEvent(t, new Event(Tab.CLOSED_EVENT));
+                    }
+                }
             });
 
             MenuItem closeAllItems = new MenuItem("Close all");
-            closeAllItems.setOnAction(event -> tabPaneRef.get().getTabs().clear());
+            closeAllItems.setOnAction(event -> {
+                ArrayList<Tab> tabsToClose = new ArrayList<>(tabPaneRef.get().getTabs());
+                for (Tab t: tabsToClose){
+                    Event.fireEvent(t, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+                    tabPaneRef.get().getTabs().remove(t);
+                    Event.fireEvent(t, new Event(Tab.CLOSED_EVENT));
+                }
+            });
 
             MenuItem closeToTheLeftItem = new MenuItem("Close all to the left");
             closeToTheLeftItem.setOnAction(event -> {
                 int index = tabPaneRef.get().getTabs().indexOf(tab);
-                List<Tab> tabs = new ArrayList<>(tabPaneRef.get().getTabs().subList(index, tabPaneRef.get().getTabs().size()));
-                tabPaneRef.get().getTabs().setAll(tabs);
+                List<Tab> tabsToClose = new ArrayList<>(tabPaneRef.get().getTabs().subList(0, index));
+                for (Tab t: tabsToClose){
+                    Event.fireEvent(t, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+                    tabPaneRef.get().getTabs().remove(t);
+                    Event.fireEvent(t, new Event(Tab.CLOSED_EVENT));
+                }
             });
 
             MenuItem closeToTheRightItem = new MenuItem("Close all to the right");
             closeToTheRightItem.setOnAction(event -> {
                 int index = tabPaneRef.get().getTabs().indexOf(tab);
-                List<Tab> tabs = new ArrayList<>(tabPaneRef.get().getTabs().subList(0, index + 1));
-                tabPaneRef.get().getTabs().setAll(tabs);
+                List<Tab> tabs = new ArrayList<>(tabPaneRef.get().getTabs().subList(index+1, tabPaneRef.get().getTabs().size()));
+                for (Tab t: tabs){
+                    Event.fireEvent(t, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
+                    tabPaneRef.get().getTabs().remove(t);
+                    Event.fireEvent(t, new Event(Tab.CLOSED_EVENT));
+                }
             });
 
             MenuItem splitVerticallyItem = new MenuItem("Split vertically");
