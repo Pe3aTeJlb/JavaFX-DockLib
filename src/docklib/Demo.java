@@ -107,6 +107,8 @@ public class Demo extends Application {
         vbox.getChildren().addAll(menuBar, toolBar, dockPane);
         VBox.setVgrow(dockPane, Priority.ALWAYS);
 
+        DockPane.initializeDefaultUserAgentStylesheet();
+
         primaryStage.setTitle("Demo scene");
         primaryStage.setScene(new Scene(vbox, 800, 500));
         primaryStage.sizeToScene();

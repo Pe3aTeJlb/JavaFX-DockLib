@@ -82,6 +82,11 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     }
 
+    public static void initializeDefaultUserAgentStylesheet() {
+        StyleManager.getInstance()
+                .addUserAgentStylesheet(DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
+    }
+
     public DockPane(){
         this(true);
     }
@@ -89,9 +94,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     public DockPane(boolean winInteractive){
 
         super();
-
-        StyleManager.getInstance()
-                .addUserAgentStylesheet(DockPane.class.getResource("/docklib/resources/docklib.css").toExternalForm());
 
         this.winInteractive = winInteractive;
 

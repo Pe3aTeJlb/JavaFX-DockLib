@@ -7,7 +7,7 @@
 .dock-area-indicator {
       -fx-fill: -fx-selection-bar;
       -fx-opacity: 0.196;
-      -fx-stroke: rgba(102, 219, 100, 255);
+      -fx-stroke: -fx-selection-bar;
 }
 
 .node-dock-selector {
