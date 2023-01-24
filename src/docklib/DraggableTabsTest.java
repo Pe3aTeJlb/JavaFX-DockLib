@@ -27,10 +27,13 @@ public class DraggableTabsTest extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        DraggableTabPane systemTabPaneLeft = new DraggableTabPane(TabGroup.System);
+        DraggableTabPane systemTabPaneLeft = new DraggableTabPane(primaryStage, TabGroup.System);
         systemTabPaneLeft.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         systemTabPaneLeft.setSide(Side.LEFT);
         systemTabPaneLeft.setRotateGraphic(true);
+
+        systemTabPaneLeft.setCollapseOnInit(false);
+        systemTabPaneLeft.setPrefExpandedSize(200);
 
         DraggableTab tab1 = new DraggableTab("", IconsManager.getImage("icon.png"), generateRandomTree());
         DraggableTab tab2 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.AQUA));
@@ -40,7 +43,7 @@ public class DraggableTabsTest extends Application {
                 tab2
         );
 
-        DraggableTabPane systemTabPaneRight = new DraggableTabPane(TabGroup.System);
+        DraggableTabPane systemTabPaneRight = new DraggableTabPane(primaryStage, TabGroup.System);
         systemTabPaneRight.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         systemTabPaneRight.setSide(Side.RIGHT);
         systemTabPaneRight.setRotateGraphic(true);
@@ -54,7 +57,7 @@ public class DraggableTabsTest extends Application {
         );
 
 
-        DraggableTabPane systemTabPaneBottom = new DraggableTabPane(TabGroup.System);
+        DraggableTabPane systemTabPaneBottom = new DraggableTabPane(primaryStage, TabGroup.System);
         systemTabPaneBottom.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         systemTabPaneBottom.setSide(Side.BOTTOM);
         systemTabPaneBottom.setRotateGraphic(true);
@@ -81,7 +84,7 @@ public class DraggableTabsTest extends Application {
                 tab39
         );
 
-        DraggableTabPane systemTabPaneTop = new DraggableTabPane(TabGroup.System);
+        DraggableTabPane systemTabPaneTop = new DraggableTabPane(primaryStage, TabGroup.System);
         systemTabPaneTop.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         systemTabPaneTop.setSide(Side.TOP);
         systemTabPaneTop.setRotateGraphic(true);
@@ -96,7 +99,7 @@ public class DraggableTabsTest extends Application {
                 tab333
         );
 
-        DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
+        DraggableTabPane workspaceTabPane = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);

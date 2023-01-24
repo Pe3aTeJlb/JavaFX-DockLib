@@ -28,7 +28,7 @@ public class Demo extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
+        DraggableTabPane workspaceTabPane = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);

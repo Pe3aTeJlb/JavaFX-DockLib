@@ -11,6 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -26,6 +27,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,10 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static docklib.dock.DockPane.dockPanes;
 import static docklib.draggabletabpane.DraggableTabPane.tabPanes;
 
-/* !!!Warning!!!
- * This realisation doesn't use initOwner() to share window lifecycle cause then we can't minimize detached tabs,
- * so, u have to write u own frame/window manager to handle this problem or just accept this fact
- */
 public class DraggableTab extends Tab {
 
     private Label tabLabel;
@@ -131,7 +129,6 @@ public class DraggableTab extends Tab {
         dragStagePane.getChildren().add(dragText);
         dragStage.setScene(new Scene(dragStagePane));
 
-
         //Define drag events
 
         //Detach tab from tabpane
@@ -182,6 +179,8 @@ public class DraggableTab extends Tab {
                 }
 
                 this.getTabPane().getTabs().remove(this);
+
+                Event.fireEvent(this.tabLabel, new Event(DraggableTabEvent.DETACHED));
 
             }
 
@@ -411,7 +410,7 @@ public class DraggableTab extends Tab {
                     detached.set(false);
 
                     //fireDockEvent(event, null);
-
+                    Event.fireEvent(this.tabLabel, new Event(DraggableTabEvent.ATTACHED));
                     return;
                 }
 
@@ -419,6 +418,7 @@ public class DraggableTab extends Tab {
                 if (!detachable) {
                     detached.set(false);
                     originTabPane.getTabs().add(originIndex, DraggableTab.this);
+                    Event.fireEvent(this.tabLabel, new Event(DraggableTabEvent.DETACH_INTERRUPTED));
                     return;
                 }
 
@@ -426,7 +426,7 @@ public class DraggableTab extends Tab {
                 if (dragNodes.get(targetWindow) != null) {
                     //at this moment this tab is deleted from origin tabpane but we need it reference
                     //to check if it relate to the same project
-                    DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                    DraggableTabPane draggableTabPane = new DraggableTabPane(originTabPane.getWindow(), tabGroup);
                     draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                     if(originTabPane.getProject() != null) draggableTabPane.setProject(originTabPane.getProject());
                     draggableTabPane.addTab(this);
@@ -660,8 +660,9 @@ public class DraggableTab extends Tab {
             final Stage newFloatStage = new Stage();
             newFloatStage.getIcons().add(IconsManager.StageIcon);
             newFloatStage.titleProperty().bind(stageTitle);
+            originTabPane.getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> newFloatStage.close());
 
-            final DraggableTabPane pane = new DraggableTabPane(tabGroup);
+            final DraggableTabPane pane = new DraggableTabPane(originTabPane.getWindow(), tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
             if(originTabPane.getProject() != null) pane.setProject(originTabPane.getProject());
             pane.addTab(this);
@@ -689,6 +690,8 @@ public class DraggableTab extends Tab {
 
             pane.requestLayout();
             pane.requestFocus();
+
+            Event.fireEvent(this.tabLabel, new Event(DraggableTabEvent.INTO_SEPARATED_WINDOW));
 
         } else {
 
@@ -982,6 +985,23 @@ public class DraggableTab extends Tab {
     }
 
 
+
+    //Custom Events
+
+    public void setOnDetached(EventHandler<Event> var1) {
+        this.tabLabel.addEventHandler(DraggableTabEvent.DETACHED, var1);
+    }
+
+    public void setOnAttached(EventHandler<Event> var1) {
+        this.tabLabel.addEventHandler(DraggableTabEvent.ATTACHED, var1);
+    }
+
+    public void setOnIntoSeparatedWindow(EventHandler<Event> var1) {
+        this.tabLabel.addEventHandler(DraggableTabEvent.INTO_SEPARATED_WINDOW, var1);
+    }
+
+
+
     /* Getters/Setters */
 
     public DraggableTabPane getOriginTabPane(){
@@ -1026,6 +1046,8 @@ public class DraggableTab extends Tab {
         getTabPane().getTabs().remove(this);
         Event.fireEvent(this, new Event(Tab.CLOSED_EVENT));
     }
+
+
 
     static Map<String, StringBinding> localizationPack = null;
 
@@ -1146,6 +1168,7 @@ public class DraggableTab extends Tab {
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
             floatStage.titleProperty().bind(stageTitle);
+            ((DraggableTabPane) tab.getTabPane()).getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -1182,6 +1205,8 @@ public class DraggableTab extends Tab {
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
             floatStage.titleProperty().bind(stageTitle);
+            ((DraggableTabPane) tab.getTabPane()).getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
+
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -1272,7 +1297,7 @@ public class DraggableTab extends Tab {
             MenuItem splitVerticallyItem = new MenuItem("Split vertically");
             splitVerticallyItem.setOnAction(event -> {
                 tabPaneRef.get().getTabs().remove(tab);
-                DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getWindow(), tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                 if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);
@@ -1282,7 +1307,7 @@ public class DraggableTab extends Tab {
             MenuItem splitHorizontallyItem = new MenuItem("Split horizontally");
             splitHorizontallyItem.setOnAction(event -> {
                 tabPaneRef.get().getTabs().remove(tab);
-                DraggableTabPane draggableTabPane = new DraggableTabPane(tabGroup);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getWindow(), tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                 if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);

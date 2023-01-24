@@ -9,27 +9,36 @@ import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.stage.Window;
 
 public class DoubleSidedTabPane extends Control implements Dockable {
 
     private DraggableTabPane leftTabPane;
     private DraggableTabPane rightTabPane;
-    public boolean collapseOnInit = true;
-    private double prefExpandedSize = 200;
 
-    public DoubleSidedTabPane(){
-        this(null);
+    private boolean collapseOnInit = true;
+    private double prefExpandedSize;
+    private double DEFAULT_EXPAND_SIZE = 200;
+
+    private Window owner;
+
+    public DoubleSidedTabPane(Window window){
+        this(window, null);
     }
 
-    public DoubleSidedTabPane(Object project){
+    public DoubleSidedTabPane(Window window, Object project){
 
         super();
 
-        leftTabPane = new DraggableTabPane(TabGroup.System);
+        this.owner = window;
+
+        this.prefExpandedSize = DEFAULT_EXPAND_SIZE;
+
+        leftTabPane = new DraggableTabPane(owner, TabGroup.System);
         leftTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         leftTabPane.setRotateGraphic(true);
 
-        rightTabPane = new DraggableTabPane(TabGroup.System);
+        rightTabPane = new DraggableTabPane(owner, TabGroup.System);
         rightTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         rightTabPane.setRotateGraphic(true);
 
@@ -70,8 +79,21 @@ public class DoubleSidedTabPane extends Control implements Dockable {
         return new DoubleSidedTabPaneSkin(this);
     }
 
-    public void setCollapseOnInit(boolean collapseOnInit) {
-        this.collapseOnInit = collapseOnInit;
+    public void setPrefExpandedSize(double size){
+        prefExpandedSize = size;
+        leftTabPane.setPrefExpandedSize(size);
+        rightTabPane.setPrefExpandedSize(size);
+    }
+
+    public void setLeftCollapseOnInit(boolean collapseOnInit){
+        leftTabPane.setCollapseOnInit(collapseOnInit);
+    }
+
+    public void setRightCollapseOnInit(boolean collapseOnInit){
+        rightTabPane.setCollapseOnInit(collapseOnInit);
+    }
+
+    public void setCollapseOnInit(boolean collapseOnInit){
         leftTabPane.setCollapseOnInit(collapseOnInit);
         rightTabPane.setCollapseOnInit(collapseOnInit);
     }

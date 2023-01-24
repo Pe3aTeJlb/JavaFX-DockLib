@@ -28,7 +28,7 @@ public class DoubleSidedTabPaneTest extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        DoubleSidedTabPane systemTabPaneTop = new DoubleSidedTabPane();
+        DoubleSidedTabPane systemTabPaneTop = new DoubleSidedTabPane(primaryStage);
         systemTabPaneTop.setSide(Side.TOP);
 
         DraggableTab tab41 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
@@ -41,7 +41,7 @@ public class DoubleSidedTabPaneTest extends Application {
         systemTabPaneTop.addLeft(tab41, tab42, tab43);
         systemTabPaneTop.addRight(tab44, tab45, tab46);
 
-        DoubleSidedTabPane systemTabPaneBottom = new DoubleSidedTabPane();
+        DoubleSidedTabPane systemTabPaneBottom = new DoubleSidedTabPane(primaryStage);
         systemTabPaneBottom.setSide(Side.BOTTOM);
 
         DraggableTab tab411 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
@@ -55,8 +55,10 @@ public class DoubleSidedTabPaneTest extends Application {
         systemTabPaneBottom.addRight(tab441, tab451, tab461);
 
 
-        DoubleSidedTabPane systemTabPaneLeft = new DoubleSidedTabPane();
+        DoubleSidedTabPane systemTabPaneLeft = new DoubleSidedTabPane(primaryStage);
         systemTabPaneLeft.setSide(Side.LEFT);
+        systemTabPaneLeft.setCollapseOnInit(false);
+        systemTabPaneLeft.setPrefExpandedSize(50);
 
         DraggableTab tab414 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab424 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new TextArea());
@@ -69,7 +71,7 @@ public class DoubleSidedTabPaneTest extends Application {
         systemTabPaneLeft.addRight(tab444, tab454, tab464);
 
 
-        DoubleSidedTabPane systemTabPaneRight = new DoubleSidedTabPane();
+        DoubleSidedTabPane systemTabPaneRight = new DoubleSidedTabPane(primaryStage);
         systemTabPaneRight.setSide(Side.RIGHT);
 
         DraggableTab tab415 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
@@ -83,7 +85,7 @@ public class DoubleSidedTabPaneTest extends Application {
         systemTabPaneRight.addRight(tab445, tab455, tab465);
 
 
-        DraggableTabPane workspaceTabPane = new DraggableTabPane(TabGroup.WorkSpace);
+        DraggableTabPane workspaceTabPane = new DraggableTabPane(primaryStage, TabGroup.WorkSpace);
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);
@@ -107,7 +109,7 @@ public class DoubleSidedTabPaneTest extends Application {
         dockPane.dock(workspaceTabPane, DockAnchor.TOP);
         dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
         dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
-        //dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
+    //    dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
         dockPane.dock(systemTabPaneBottom, DockAnchor.BOTTOM);
 
         final Menu menu1 = new Menu("File");

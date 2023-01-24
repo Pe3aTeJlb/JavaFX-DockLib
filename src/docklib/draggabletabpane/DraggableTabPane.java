@@ -14,6 +14,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,38 +34,37 @@ public class DraggableTabPane extends TabPane implements Dockable {
     private InvalidationListener skinListener;
     private InvalidationListener layoutListener;
 
-    public boolean collapseOnInit = true;
+    private boolean collapseOnInit = true;
+    private double prefExpandedSize;
+    private double DEFAULT_EXPAND_SIZE = 200;
 
-    public DraggableTabPane(){
-        this(TabGroup.None, null);
+    private Window owner;
+
+    public DraggableTabPane(Window window){
+        this(window, TabGroup.None, null);
     }
 
-    public DraggableTabPane(TabGroup dockGroup){
-        this(dockGroup, null);
+    public DraggableTabPane(Window window, TabGroup dockGroup){
+        this(window, dockGroup, null);
     }
 
-    public DraggableTabPane(DockPane dockPane){
-        this(TabGroup.None, dockPane);
+    public DraggableTabPane(Window window, DockPane dockPane){
+        this(window, TabGroup.None, dockPane);
     }
 
-    public DraggableTabPane(TabGroup dockGroup, DockPane dockPane){
+    public DraggableTabPane(Window window, TabGroup dockGroup, DockPane dockPane){
 
         super();
 
+        this.owner = window;
         this.tabGroup = dockGroup;
         this.dockPane = dockPane;
-        this.prefExpandedSize = 200;
+        this.prefExpandedSize = DEFAULT_EXPAND_SIZE;
+
         if(dockGroup == TabGroup.System) {
 
             this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-
-            if(collapseOnInit) {
-                layoutListener = change -> {
-                    collapse();
-                };
-                skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
-                this.skinProperty().addListener(skinListener);
-            }
+            setCollapseOnInit(true);
 
         } else {
             this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
@@ -106,6 +106,10 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if(this.getTabs().size() == 1) {
             haveDetachedTab.bind(detachedProperty);
         }
+    }
+
+    public Window getWindow() {
+        return owner;
     }
 
     public void addTab(DraggableTab tab){
@@ -221,10 +225,22 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
 
     private BooleanProperty collapsed;
-    private double prefExpandedSize = 200;
+
+    public void setPrefExpandedSize(double size){
+        prefExpandedSize = size;
+    }
 
     public void setCollapseOnInit(boolean collapseOnInit) {
-        this.collapseOnInit = collapseOnInit;
+        if (collapseOnInit){
+            layoutListener = change -> collapse();
+        } else {
+            layoutListener = change -> {
+                collapsedProperty().set(true);
+                expand();
+            };
+        }
+        skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
+        this.skinProperty().addListener(skinListener);
     }
 
     public void collapse(){
@@ -236,6 +252,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
         if(isCollapsed())
             return;
+
 
         if(isWrappedInDockPane()){
 
@@ -348,7 +365,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
     }
 
     public final boolean isCollapsed() {
-        return this.collapsed != null && this.collapsed.get();
+        return collapsedProperty().get();
     }
 
     public final BooleanProperty collapsedProperty() {
