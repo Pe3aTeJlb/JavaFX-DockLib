@@ -220,7 +220,6 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     private boolean sameProject(Object project){
         return projectProperty().get() == project;
-        //return true;
     }
 
 
@@ -230,17 +229,32 @@ public class DraggableTabPane extends TabPane implements Dockable {
         prefExpandedSize = size;
     }
 
+    public double getPrefExpandedSize(){
+        return prefExpandedSize;
+    }
+
     public void setCollapseOnInit(boolean collapseOnInit) {
+
+        if (skinListener != null){
+            this.skinProperty().removeListener(skinListener);
+        }
+
         if (collapseOnInit){
-            layoutListener = change -> collapse();
+            layoutListener = change -> {
+                collapse();
+            };
         } else {
             layoutListener = change -> {
-                collapsedProperty().set(true);
+                collapse();
                 expand();
             };
         }
-        skinListener = change -> ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
+
+        skinListener = change -> {
+            ((DraggableTabPaneSkin) this.getSkin()).getSkinHeightProperty().addListener(layoutListener);
+        };
         this.skinProperty().addListener(skinListener);
+
     }
 
     public void collapse(){
@@ -305,11 +319,21 @@ public class DraggableTabPane extends TabPane implements Dockable {
         if(getSide().isHorizontal()){
             this.setMinHeight(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight() + 10);
             this.setPrefHeight(prefExpandedSize);
-            this.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
+            if (isWrappedInDockPane()) {
+                this.setMaxHeight(TabPane.USE_PREF_SIZE);
+                Platform.runLater(() ->  this.setMaxHeight(TabPane.USE_COMPUTED_SIZE));
+            } else {
+                this.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
+            }
         } else {
             this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight() + 10);
             this.setPrefWidth(prefExpandedSize);
-            this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
+            if (isWrappedInDockPane()) {
+                this.setMaxWidth(TabPane.USE_PREF_SIZE);
+                Platform.runLater(() ->  this.setMaxWidth(TabPane.USE_COMPUTED_SIZE));
+            } else {
+                this.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
+            }
         }
 
         this.collapsedProperty().set(false);

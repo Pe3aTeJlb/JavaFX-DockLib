@@ -33,7 +33,7 @@ public class DraggableTabsTest extends Application {
         systemTabPaneLeft.setRotateGraphic(true);
 
         systemTabPaneLeft.setCollapseOnInit(false);
-        systemTabPaneLeft.setPrefExpandedSize(200);
+        systemTabPaneLeft.setPrefExpandedSize(100);
 
         DraggableTab tab1 = new DraggableTab("", IconsManager.getImage("icon.png"), generateRandomTree());
         DraggableTab tab2 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.AQUA));
