@@ -1370,8 +1370,8 @@ public class DraggableTab extends Tab {
                 closeOthersItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
                 closeToTheLeftItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == 0);
                 closeToTheRightItem.setDisable(tabPaneRef.get().getTabs().indexOf(tab) == tabPaneRef.get().getTabs().size()-1);
-                splitVerticallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || !tabPaneRef.get().isUnDockable() || tabPaneRef.get().getTabs().size() == 1);
-                splitHorizontallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || !tabPaneRef.get().isUnDockable() || tabPaneRef.get().getTabs().size() == 1);
+                splitVerticallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
+                splitHorizontallyItem.setDisable(!tabPaneRef.get().isWrappedInDockPane() || tabPaneRef.get().getTabs().size() == 1);
                 selectNextTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
                 selectPreviousTabItem.setDisable(tabPaneRef.get().getTabs().size() == 1);
             });
