@@ -85,6 +85,10 @@ public class DoubleSidedTabPane extends Control implements Dockable {
         rightTabPane.setPrefExpandedSize(size);
     }
 
+    public double getPrefExpandedSize() {
+        return prefExpandedSize;
+    }
+
     public void setLeftCollapseOnInit(boolean collapseOnInit){
         leftTabPane.setCollapseOnInit(collapseOnInit);
     }

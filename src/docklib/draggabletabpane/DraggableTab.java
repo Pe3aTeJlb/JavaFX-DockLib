@@ -40,6 +40,7 @@ public class DraggableTab extends Tab {
     private Label tabLabel;
     private Label dragText;
     private SimpleStringProperty stageTitle = new SimpleStringProperty();
+    private String type;
 
     //Tech stage for event handling
     private Stage dragStage;
@@ -1012,6 +1013,7 @@ public class DraggableTab extends Tab {
         return tabGroup;
     }
 
+
     public void setDetachable(boolean detachable) {
         this.detachable = detachable;
     }
@@ -1020,7 +1022,9 @@ public class DraggableTab extends Tab {
         return this.detachable;
     }
 
+
     public void setTabText(String text) {
+        this.setText(text);
         tabLabel.setText(text);
         dragText.setText(text);
     }
@@ -1028,6 +1032,7 @@ public class DraggableTab extends Tab {
     private Label getLabel() {
         return tabLabel;
     }
+
 
     public void setStageTitle(String text){
         stageTitle.set(text);
@@ -1040,6 +1045,17 @@ public class DraggableTab extends Tab {
     public SimpleStringProperty getStageTitle() {
         return stageTitle;
     }
+
+
+    public void setType(String type){
+        this.type = type;
+    }
+
+    public String getType(){
+        return type;
+    }
+
+
 
     public void close(){
         Event.fireEvent(this, new Event(Tab.TAB_CLOSE_REQUEST_EVENT));
