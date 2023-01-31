@@ -224,7 +224,7 @@ public class DraggableTab extends Tab {
         });
 
         this.setContent(content);
-        this.getContent().setOnMouseClicked(event -> {
+        this.getContent().addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
             if (((DraggableTabPane)getTabPane()).isUnDockable() && (getTabPane().getScene().getWindow() instanceof Stage)){
                 ((Stage)getTabPane().getScene().getWindow()).titleProperty().bind(stageTitle);
             }
