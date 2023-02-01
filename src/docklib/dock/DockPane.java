@@ -44,6 +44,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     private DockAnchor dockAnchor;
 
     private boolean winInteractive;
+    private boolean useDockPaneBoundaryForSideDock = false;
 
     public static class DockAnchorButton extends Button {
 
@@ -184,6 +185,15 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         dockPanes.add(this);
 
     }
+
+    public void setUseDockPaneBoundaryForSideDock(boolean val){
+        useDockPaneBoundaryForSideDock = val;
+    }
+
+    public boolean getUseDockPaneBoundaryForSideDock(){
+        return useDockPaneBoundaryForSideDock;
+    }
+
 
     public SplitPane getRoot(){
         return root;
@@ -396,6 +406,8 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     }
 
+
+
     @Override
     public void handle(DockEvent event) {
 
@@ -442,13 +454,14 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         Scene scene = dockNodeTarget.getScene();
         Window window = dockNodeTarget.getScene().getWindow();
-
         Insets winInsets = new Insets(
                 scene.getY(),
                 window.getWidth()-scene.getWidth() - scene.getX(),
                 window.getHeight()-scene.getHeight() - scene.getY(),
                 scene.getX()
         );
+
+        Bounds screenDockBounds = this.localToScreen(this.getLayoutBounds());
 
         if (event.getEventType() == DockEvent.DOCK_ENTER) {
 /*
@@ -462,30 +475,44 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             this.receivedEnter = false;
             dockAnchor = null;
 
-            int winDockThreshold = 25;
-
+            int winThreshold = 25;
+            int dockThreshold = 25;
+            System.out.println(screenDockBounds.getMaxY() - event.getScreenY());
             //Check if at window border
-            if(event.getScreenX() - window.getX() - winInsets.getLeft() < winDockThreshold){
+            if(event.getScreenX() - window.getX() - winInsets.getLeft() < winThreshold){
                 dockAnchor = DockAnchor.LEFT;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget,dockAnchor);
-            } else if((window.getX() + window.getWidth() - winInsets.getRight() - winInsets.getLeft()) - event.getScreenX() < winDockThreshold){
+            } else if((window.getX() + window.getWidth() - winInsets.getRight() - winInsets.getLeft()) - event.getScreenX() < winThreshold){
                 dockAnchor = DockAnchor.RIGHT;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget, dockAnchor);
-            } else if(event.getScreenY() - window.getY() - winInsets.getTop() < winDockThreshold){
+            } else if(event.getScreenY() - window.getY() - winInsets.getTop() < winThreshold){
                 dockAnchor = DockAnchor.TOP;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget, dockAnchor);
-            } else if((window.getY()) + window.getHeight() - winInsets.getTop() - winInsets.getBottom() - event.getScreenY() < winDockThreshold){
+            } else if((window.getY()) + window.getHeight() - winInsets.getTop() - winInsets.getBottom() - event.getScreenY() < winThreshold){
                 dockAnchor = DockAnchor.BOTTOM;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget,dockAnchor);
+            } else if (useDockPaneBoundaryForSideDock && event.getScreenX() - screenDockBounds.getMinX() < dockThreshold){
+                dockAnchor = DockAnchor.LEFT;
+                dockNodeTarget = this;
+                showDockPaneDockPopup(dockNodeTarget,dockAnchor);
+            } else if (useDockPaneBoundaryForSideDock && screenDockBounds.getMaxX() - event.getScreenX() < dockThreshold){
+                dockAnchor = DockAnchor.RIGHT;
+                dockNodeTarget = this;
+                showDockPaneDockPopup(dockNodeTarget, dockAnchor);
+            } else if (useDockPaneBoundaryForSideDock && screenDockBounds.getMaxY() - event.getScreenY() < dockThreshold){
+                dockAnchor = DockAnchor.BOTTOM;
+                dockNodeTarget = this;
+                showDockPaneDockPopup(dockNodeTarget, dockAnchor);
             } else {
+
+                // else check if we at node center
 
                 hideWinDockPopup();
 
-                // else check if we at node center
                 Point2D eventPos = new Point2D(event.getScreenX(), event.getScreenY());
                 Point2D dockTargetNodeCenter = new Point2D(
                         dockNodeTarget.localToScreen(dockNodeTarget.getLayoutBounds()).getCenterX(),
@@ -600,6 +627,65 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
         if (!winDockPopup.isShowing()) {
             winDockPopup.show(DockPane.this, posX, posY);
+        }
+
+        winDockAreaIndicator.setVisible(true);
+
+    }
+
+    public void showDockPaneDockPopup(Node dockNodeTarget, DockAnchor dockAnchor){
+
+        if(!useDockPaneBoundaryForSideDock)
+            return;
+
+        hideNodeDockPopup();
+
+        dockAnchorButton.setDockAnchor(dockAnchor);
+
+        dockAnchorButton.setTranslateX(0);
+        dockAnchorButton.setTranslateY(0);
+        winDockAreaIndicator.setTranslateX(0);
+        winDockAreaIndicator.setTranslateY(0);
+
+        System.out.println(dockAnchor);
+
+        //set highlight coord
+        if(dockAnchor == DockAnchor.RIGHT){
+
+            winDockAreaIndicator.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() / 2);
+            winDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth() / 2);
+            winDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
+
+            dockAnchorButton.setTranslateX(dockNodeTarget.getLayoutBounds().getWidth() / 2 - dockAnchorButton.getLayoutBounds().getWidth() / 2);
+
+        } else if(dockAnchor == DockAnchor.LEFT){
+
+            winDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth() / 2);
+            winDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight());
+
+            dockAnchorButton.setTranslateX(-dockNodeTarget.getLayoutBounds().getWidth() / 2 + dockAnchorButton.getLayoutBounds().getWidth() / 2);
+
+        } else if(dockAnchor == DockAnchor.TOP){
+
+            winDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
+            winDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight() / 2);
+
+            dockAnchorButton.setTranslateY(-dockNodeTarget.getLayoutBounds().getHeight() / 2 + dockAnchorButton.getLayoutBounds().getHeight() / 2);
+
+        } else {
+
+            winDockAreaIndicator.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() / 2);
+            winDockAreaIndicator.setWidth(dockNodeTarget.getLayoutBounds().getWidth());
+            winDockAreaIndicator.setHeight(dockNodeTarget.getLayoutBounds().getHeight() / 2);
+
+            dockAnchorButton.setTranslateY(dockNodeTarget.getLayoutBounds().getHeight() / 2 - dockAnchorButton.getLayoutBounds().getHeight() / 2);
+
+        }
+
+        Bounds b = this.localToScreen(this.getLayoutBounds());
+
+        if (!winDockPopup.isShowing()) {
+            winDockPopup.show(DockPane.this, b.getMinX(), b.getMinY());
         }
 
         winDockAreaIndicator.setVisible(true);

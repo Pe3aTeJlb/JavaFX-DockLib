@@ -57,8 +57,8 @@ public class DoubleSidedTabPaneTest extends Application {
 
         DoubleSidedTabPane systemTabPaneLeft = new DoubleSidedTabPane(primaryStage);
         systemTabPaneLeft.setSide(Side.LEFT);
-        systemTabPaneLeft.setCollapseOnInit(false);
-        systemTabPaneLeft.setPrefExpandedSize(100);
+        //systemTabPaneLeft.setCollapseOnInit(false);
+        //systemTabPaneLeft.setPrefExpandedSize(100);
 
         DraggableTab tab414 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab424 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new TextArea());
@@ -89,7 +89,7 @@ public class DoubleSidedTabPaneTest extends Application {
         workspaceTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         workspaceTabPane.setSide(Side.TOP);
         workspaceTabPane.setRotateGraphic(true);
-        workspaceTabPane.setUnDockable(false);
+        //workspaceTabPane.setUnDockable(false);
 
 
         DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), new TextArea());
@@ -107,7 +107,11 @@ public class DoubleSidedTabPaneTest extends Application {
 
         DockPane dockPane = new DockPane(false);
 
-        dockPane.dock(workspaceTabPane, DockAnchor.TOP);
+        DockPane d = new DockPane();
+        d.setUseDockPaneBoundaryForSideDock(true);
+        d.dock(workspaceTabPane, DockAnchor.CENTER);
+
+        dockPane.dock(d, DockAnchor.TOP);
         dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
         dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
     //    dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
