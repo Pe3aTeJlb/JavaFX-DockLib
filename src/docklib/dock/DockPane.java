@@ -477,7 +477,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
             int winThreshold = 25;
             int dockThreshold = 25;
-            System.out.println(screenDockBounds.getMaxY() - event.getScreenY());
             //Check if at window border
             if(event.getScreenX() - window.getX() - winInsets.getLeft() < winThreshold){
                 dockAnchor = DockAnchor.LEFT;
@@ -646,8 +645,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
         dockAnchorButton.setTranslateY(0);
         winDockAreaIndicator.setTranslateX(0);
         winDockAreaIndicator.setTranslateY(0);
-
-        System.out.println(dockAnchor);
 
         //set highlight coord
         if(dockAnchor == DockAnchor.RIGHT){

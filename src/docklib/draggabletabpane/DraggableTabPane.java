@@ -108,7 +108,7 @@ public class DraggableTabPane extends TabPane implements Dockable {
         }
     }
 
-    public Window getWindow() {
+    public Window getOwnerWindow() {
         return owner;
     }
 

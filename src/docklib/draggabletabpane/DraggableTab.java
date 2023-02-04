@@ -427,7 +427,7 @@ public class DraggableTab extends Tab {
                 if (dragNodes.get(targetWindow) != null) {
                     //at this moment this tab is deleted from origin tabpane but we need it reference
                     //to check if it relate to the same project
-                    DraggableTabPane draggableTabPane = new DraggableTabPane(originTabPane.getWindow(), tabGroup);
+                    DraggableTabPane draggableTabPane = new DraggableTabPane(originTabPane.getOwnerWindow(), tabGroup);
                     draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                     if(originTabPane.getProject() != null) draggableTabPane.setProject(originTabPane.getProject());
                     draggableTabPane.addTab(this);
@@ -661,9 +661,9 @@ public class DraggableTab extends Tab {
             final Stage newFloatStage = new Stage();
             newFloatStage.getIcons().add(IconsManager.StageIcon);
             newFloatStage.titleProperty().bind(stageTitle);
-            originTabPane.getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> newFloatStage.close());
+            originTabPane.getOwnerWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> newFloatStage.close());
 
-            final DraggableTabPane pane = new DraggableTabPane(originTabPane.getWindow(), tabGroup);
+            final DraggableTabPane pane = new DraggableTabPane(originTabPane.getOwnerWindow(), tabGroup);
             pane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
             if(originTabPane.getProject() != null) pane.setProject(originTabPane.getProject());
             pane.addTab(this);
@@ -1184,7 +1184,7 @@ public class DraggableTab extends Tab {
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
             floatStage.titleProperty().bind(stageTitle);
-            ((DraggableTabPane) tab.getTabPane()).getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
+            ((DraggableTabPane) tab.getTabPane()).getOwnerWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
 
             AnchorPane anchorPane = new AnchorPane();
             anchorPane.getChildren().add(content);
@@ -1221,7 +1221,7 @@ public class DraggableTab extends Tab {
             floatStage = new Stage();
             floatStage.getIcons().add(IconsManager.StageIcon);
             floatStage.titleProperty().bind(stageTitle);
-            ((DraggableTabPane) tab.getTabPane()).getWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
+            ((DraggableTabPane) tab.getTabPane()).getOwnerWindow().addEventHandler(WindowEvent.WINDOW_HIDING, windowEvent -> floatStage.close());
 
 
             AnchorPane anchorPane = new AnchorPane();
@@ -1313,7 +1313,7 @@ public class DraggableTab extends Tab {
             MenuItem splitVerticallyItem = new MenuItem("Split vertically");
             splitVerticallyItem.setOnAction(event -> {
                 tabPaneRef.get().getTabs().remove(tab);
-                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getWindow(), tabGroup);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getOwnerWindow(), tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                 if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);
@@ -1323,7 +1323,7 @@ public class DraggableTab extends Tab {
             MenuItem splitHorizontallyItem = new MenuItem("Split horizontally");
             splitHorizontallyItem.setOnAction(event -> {
                 tabPaneRef.get().getTabs().remove(tab);
-                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getWindow(), tabGroup);
+                DraggableTabPane draggableTabPane = new DraggableTabPane(tabPaneRef.get().getOwnerWindow(), tabGroup);
                 draggableTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
                 if(tabPaneRef.get().getProject() != null) draggableTabPane.setProject(tabPaneRef.get().getProject());
                 draggableTabPane.addTab(tab);
