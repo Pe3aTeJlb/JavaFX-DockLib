@@ -1,5 +1,6 @@
 package docklib.draggabletabpane;
 
+import com.sun.javafx.tk.Toolkit;
 import docklib.customsplitpane.CustomSplitPane;
 import docklib.customsplitpane.SplitPaneSkin;
 import docklib.dock.DockAnchor;
@@ -39,6 +40,8 @@ public class DraggableTabPane extends TabPane implements Dockable {
     private double DEFAULT_EXPAND_SIZE = 200;
 
     private Window owner;
+
+    private double sign = -1;
 
     public DraggableTabPane(Window window){
         this(window, TabGroup.None, null);
@@ -299,6 +302,14 @@ public class DraggableTabPane extends TabPane implements Dockable {
             }
             this.setMaxWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
             this.setMinWidth(((DraggableTabPaneSkin)this.getSkin()).getTabHeaderAreaHeight());
+        }
+
+        /*Workaround to mark window dirty and avoid tabpane setMaxSize bug*/
+        sign *= -1;
+        if (sign > 0) {
+            Platform.runLater(() -> owner.setWidth(owner.getWidth() - 1));
+        } else {
+            Platform.runLater(() -> owner.setWidth(owner.getWidth() + 1));
         }
 
         if(collapseOnInit) {
