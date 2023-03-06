@@ -6,6 +6,7 @@ import com.sun.javafx.scene.control.TabObservableList;
 import com.sun.javafx.scene.control.behavior.TabPaneBehavior;
 import com.sun.javafx.util.Utils;
 import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
@@ -137,6 +138,7 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         initializeTabListener();
 
         registerChangeListener(control.getSelectionModel().selectedItemProperty(), e -> {
+            System.out.println("changed");
             isSelectingTab = true;
             selectedTab = getSkinnable().getSelectionModel().getSelectedItem();
             getSkinnable().requestLayout();
@@ -144,8 +146,16 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         registerChangeListener(control.sideProperty(), e -> {
             updateTabPosition();
         });
-        registerChangeListener(control.widthProperty(), e -> clipRect.setWidth(getSkinnable().getWidth()));
-        registerChangeListener(control.heightProperty(), e -> clipRect.setHeight(getSkinnable().getHeight()));
+        registerChangeListener(control.widthProperty(), e -> {
+            System.out.println("width");
+            clipRect.setWidth(getSkinnable().getWidth());
+            Platform.runLater( () -> getSkinnable().requestLayout());
+        });
+        registerChangeListener(control.heightProperty(), e -> {
+            System.out.println("height");
+            clipRect.setHeight(getSkinnable().getHeight());
+            Platform.runLater( () -> getSkinnable().requestLayout());
+        });
 
         selectedTab = getSkinnable().getSelectionModel().getSelectedItem();
         // Could not find the selected tab try and get the selected tab using the selected index
