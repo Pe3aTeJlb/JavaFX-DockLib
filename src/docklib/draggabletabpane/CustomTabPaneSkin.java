@@ -138,7 +138,6 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
         initializeTabListener();
 
         registerChangeListener(control.getSelectionModel().selectedItemProperty(), e -> {
-            System.out.println("changed");
             isSelectingTab = true;
             selectedTab = getSkinnable().getSelectionModel().getSelectedItem();
             getSkinnable().requestLayout();
