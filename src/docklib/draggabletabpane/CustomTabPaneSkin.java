@@ -147,12 +147,10 @@ public class CustomTabPaneSkin extends SkinBase<DraggableTabPane> implements Hea
             updateTabPosition();
         });
         registerChangeListener(control.widthProperty(), e -> {
-            System.out.println("width");
             clipRect.setWidth(getSkinnable().getWidth());
             Platform.runLater( () -> getSkinnable().requestLayout());
         });
         registerChangeListener(control.heightProperty(), e -> {
-            System.out.println("height");
             clipRect.setHeight(getSkinnable().getHeight());
             Platform.runLater( () -> getSkinnable().requestLayout());
         });
