@@ -380,6 +380,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             DockPane split = (DockPane) parent;
             children = split.getChildren();
             children.removeIf(this::haveEmptyPanes);
+            if (parent == this){ root = null; }
             return children.isEmpty();
         } else if (parent instanceof SplitPane) {
             SplitPane split = (SplitPane) parent;
