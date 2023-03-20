@@ -361,6 +361,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
                     children.remove(i);
 
                     haveEmptyPanes(this);
+                    if (root.getParent() == null) { root = null; }
                     //drawTree(root, "");
                     return;
 
@@ -374,13 +375,12 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     private boolean haveEmptyPanes(Node parent){
 
-        ObservableList<Node> children ;
+        ObservableList<Node> children;
 
         if (parent instanceof DockPane){
             DockPane split = (DockPane) parent;
             children = split.getChildren();
             children.removeIf(this::haveEmptyPanes);
-            if (parent == this){ root = null; }
             return children.isEmpty();
         } else if (parent instanceof SplitPane) {
             SplitPane split = (SplitPane) parent;

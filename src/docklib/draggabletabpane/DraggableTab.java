@@ -395,7 +395,7 @@ public class DraggableTab extends Tab {
                         addIndex = insertData.getInsertPane().getTabs().size();
                     }
                     insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
-                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
+                    insertData.getInsertPane().getSelectionModel().select(addIndex);
                     for(Tab tab: insertData.getInsertPane().getTabs()){
                         tab.setStyle("-fx-translate-x: 0;");
                     }
