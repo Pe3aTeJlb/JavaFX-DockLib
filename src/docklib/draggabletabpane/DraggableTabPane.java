@@ -10,6 +10,9 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -190,8 +193,10 @@ public class DraggableTabPane extends TabPane implements Dockable {
     public void undock(){
         haveDetachedTab.unbind();
         if(dockPane != null && isUnDockable()){
+            Event.fireEvent(this, new Event(UNDOCKING));
             dockPane.undock(this);
             tabPanes.remove(this);
+            Event.fireEvent(this, new Event(UNDOCK));
         }
     }
 
@@ -406,6 +411,20 @@ public class DraggableTabPane extends TabPane implements Dockable {
 
     public NodeOrientation getHeaderOrientation(){
         return ((HeaderReachable)getSkin()).getHeaderOrientation();
+    }
+
+    public static final EventType<DraggableTabEvent> ANY = new EventType<>(Event.ANY, "DRAGGABLETABPANE_EVENT");
+    public static final EventType<DraggableTabEvent> UNDOCKING = new EventType<>(ANY, "UNDOCKING");
+    public static final EventType<DraggableTabEvent> UNDOCK = new EventType<>(ANY, "UNDOCK");
+
+    //Custom Events
+
+    public void setOnUndocking(EventHandler<Event> var1) {
+        this.addEventHandler(UNDOCKING, var1);
+    }
+
+    public void setOnUndock(EventHandler<Event> var1) {
+        this.addEventHandler(UNDOCK, var1);
     }
 
 /*
