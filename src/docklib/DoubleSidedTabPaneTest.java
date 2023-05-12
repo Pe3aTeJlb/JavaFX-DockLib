@@ -44,7 +44,15 @@ public class DoubleSidedTabPaneTest extends Application {
         DoubleSidedTabPane systemTabPaneBottom = new DoubleSidedTabPane(primaryStage);
         systemTabPaneBottom.setSide(Side.BOTTOM);
 
-        DraggableTab tab411 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        ToolBar t = new ToolBar();
+        Button find = new Button("qwe");
+        Button findAndReplace = new Button("asd");
+
+        t.getItems().addAll(
+                find,
+                findAndReplace
+        );
+        DraggableTab tab411 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new VBox(t, new TextArea()));
         DraggableTab tab421 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
         DraggableTab tab431 = new DraggableTab("System Tab 3", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab441 = new DraggableTab("System Tab 4", IconsManager.getImage("icon.png"), new TextArea());
@@ -60,7 +68,15 @@ public class DoubleSidedTabPaneTest extends Application {
         //systemTabPaneLeft.setCollapseOnInit(false);
         //systemTabPaneLeft.setPrefExpandedSize(100);
 
-        DraggableTab tab414 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        ToolBar t2 = new ToolBar();
+        Button find2 = new Button("qwe");
+        Button findAndReplace2 = new Button("asd");
+
+        t2.getItems().addAll(
+                find2,
+                findAndReplace2
+        );
+        DraggableTab tab414 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new VBox(t2, new TextArea()));
         DraggableTab tab424 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab434 = new DraggableTab("System Tab 3", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab444 = new DraggableTab("System Tab 4", IconsManager.getImage("icon.png"), new TextArea());
@@ -74,7 +90,15 @@ public class DoubleSidedTabPaneTest extends Application {
         DoubleSidedTabPane systemTabPaneRight = new DoubleSidedTabPane(primaryStage);
         systemTabPaneRight.setSide(Side.RIGHT);
 
-        DraggableTab tab415 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        ToolBar t3 = new ToolBar();
+        Button find3 = new Button("qwe");
+        Button findAndReplace3 = new Button("asd");
+
+        t3.getItems().addAll(
+                find3,
+                findAndReplace3
+        );
+        DraggableTab tab415 = new DraggableTab("System Tab 1", IconsManager.getImage("icon.png"), new VBox(t3, new TextArea()));
         DraggableTab tab425 = new DraggableTab("System Tab 2", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab435 = new DraggableTab("System Tab 3", IconsManager.getImage("icon.png"), new TextArea());
         DraggableTab tab445 = new DraggableTab("System Tab 4", IconsManager.getImage("icon.png"), new TextArea());
@@ -91,8 +115,16 @@ public class DoubleSidedTabPaneTest extends Application {
         workspaceTabPane.setRotateGraphic(true);
         //workspaceTabPane.setUnDockable(false);
 
+        ToolBar t4 = new ToolBar();
+        Button find4 = new Button("qwe");
+        Button findAndReplace4 = new Button("asd");
 
-        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+        t4.getItems().addAll(
+                find4,
+                findAndReplace4
+        );
+
+        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"),  new VBox(t4, new TextArea()));
         DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
         DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
         DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ORANGE));
@@ -114,7 +146,7 @@ public class DoubleSidedTabPaneTest extends Application {
         dockPane.dock(d, DockAnchor.TOP);
         dockPane.dock(systemTabPaneLeft, DockAnchor.LEFT);
         dockPane.dock(systemTabPaneRight, DockAnchor.RIGHT);
-    //    dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
+        dockPane.dock(systemTabPaneTop, DockAnchor.TOP);
         dockPane.dock(systemTabPaneBottom, DockAnchor.BOTTOM);
 
         final Menu menu1 = new Menu("File");
@@ -124,8 +156,15 @@ public class DoubleSidedTabPaneTest extends Application {
         MenuBar menuBar = new MenuBar();
         menuBar.getMenus().addAll(menu1, menu2, menu3);
 
+        Button lol = new Button("New");
+        lol.setOnAction(event -> {
+            d.dock(workspaceTabPane, DockAnchor.CENTER);
+            workspaceTabPane.getTabs().addAll(tab420);
+
+        });
+
         ToolBar toolBar = new ToolBar(
-                new Button("New"),
+                lol,
                 new Button("Open"),
                 new Button("Save"),
                 new Separator(),

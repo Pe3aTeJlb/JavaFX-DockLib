@@ -7,9 +7,13 @@ import docklib.draggabletabpane.DraggableTabPane;
 import docklib.draggabletabpane.TabGroup;
 import docklib.utils.IconsManager;
 import javafx.application.Application;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -105,7 +109,30 @@ public class DraggableTabsTest extends Application {
         workspaceTabPane.setRotateGraphic(true);
         workspaceTabPane.setUnDockable(false);
 
-        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), new TextArea());
+
+        VBox vBox = new VBox();
+        Canvas pane = new Canvas(300, 300);
+        SimpleIntegerProperty sip = new SimpleIntegerProperty();
+
+
+        HBox box = new HBox();
+        box.setAlignment(Pos.CENTER_LEFT);
+        Label label = new Label();
+        label.textProperty().bind(
+                sip.asString()
+        );
+        box.getChildren().addAll(label);
+
+        pane.setOnMouseMoved(event -> {
+            //System.out.println("moved");
+            sip.set((int)event.getScreenX());
+            label.requestLayout();
+        });
+
+
+        vBox.getChildren().addAll(pane,box);
+
+        DraggableTab tab410 = new DraggableTab("WorkSpace Tab 1", IconsManager.getImage("icon.png"), vBox);
         DraggableTab tab420 = new DraggableTab("WorkSpace Tab 2", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROYALBLUE));
         DraggableTab tab430 = new DraggableTab("WorkSpace Tab 3", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ROSYBROWN));
         DraggableTab tab440 = new DraggableTab("WorkSpace Tab 4", IconsManager.getImage("icon.png"), new Rectangle(100, 100, Color.ORANGE));

@@ -130,8 +130,6 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             return;
         }
 
-        double dividerWidth = 0;
-
         if (contentDividers.size() > 0 && previousSize != -1 && previousSize != (horizontal ? sw  : sh)) {
             //This algorithm adds/subtracts a little to each panel on every resize
             List<Content> resizeList = new ArrayList<Content>();
@@ -243,7 +241,6 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             ContentDivider previousDivider = null;
             ContentDivider divider = null;
             for (int i = 0; i < contentRegions.size(); i++) {
-
                 double space = 0;
                 if (i < contentDividers.size()) {
                     divider = contentDividers.get(i);
@@ -255,7 +252,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                         // First panel
                         space = getAbsoluteDividerPos(divider);
                     } else {
-                        double newPos = getAbsoluteDividerPos(previousDivider) + dividerWidth;
+                        double newPos = getAbsoluteDividerPos(previousDivider) + (previousDivider.isVisible() ? previousDivider.prefWidth(-1) : 0);
                         // Middle panels
                         if (getAbsoluteDividerPos(divider) <= getAbsoluteDividerPos(previousDivider)) {
                             // The current divider and the previous divider share the same position
@@ -267,7 +264,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                     }
                 } else if (i == contentDividers.size()) {
                     // Last panel
-                    space = (horizontal ? w : h) - (previousDivider != null ? getAbsoluteDividerPos(previousDivider) + dividerWidth : 0);
+                    space = (horizontal ? w : h) - (previousDivider != null ? getAbsoluteDividerPos(previousDivider) + (previousDivider.isVisible() ? previousDivider.prefWidth(-1) : 0) : 0);
                 }
                 if (!resize || divider.posExplicit) {
                     contentRegions.get(i).setArea(space);
@@ -384,7 +381,9 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                             total += c.getResizableWithParentArea();
                         }
                     }
-                    total += (dividerWidth * contentDividers.size());
+                    for (int i = 0; i < contentDividers.size(); i++){
+                        if (contentDividers.get(i).isVisible()) total += contentDividers.get(i).prefWidth(-1);
+                    }
                     if (total < (horizontal ? w : h)) {
                         extraSpace += ((horizontal ? w : h) - total);
                         distributeTo(storageList, extraSpace);
@@ -539,7 +538,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                     }
                 }
             }
-            // TODO there may be a more efficient way than rebuilding all the dividers
+
             // everytime the list changes.
             removeAllDividers();
             for (SplitPane.Divider d: getSkinnable().getDividers()) {
@@ -636,7 +635,6 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
     }
 
     private void initializeDivderEventHandlers(final ContentDivider divider) {
-        // TODO: do we need to consume all mouse events?
         // they only bubble to the skin which consumes them by default
         divider.addEventHandler(MouseEvent.ANY, event -> {
             event.consume();
@@ -728,7 +726,10 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
     }
 
     private double totalMinSize() {
-        double dividerWidth = !contentDividers.isEmpty() ? contentDividers.size() * contentDividers.get(0).prefWidth(0) : 0;
+        double dividersWidth = 0;
+        for (ContentDivider c: contentDividers){
+            if (c.isVisible()) dividersWidth += c.prefWidth(-1);
+        }
         double minSize = 0;
         for (Content c: contentRegions) {
             if (horizontal) {
@@ -737,7 +738,7 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
                 minSize += c.minHeight(-1);
             }
         }
-        return minSize + dividerWidth;
+        return minSize + dividersWidth;
     }
 
     private double getSize() {
@@ -856,20 +857,26 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
 
     private void setupContentAndDividerForLayout() {
         // Set all the value to prepare for layout
-        double dividerWidth = 0;
+        double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
         double startX = 0;
         double startY = 0;
-        for (Content c: contentRegions) {
+        for (int i = 0; i < contentRegions.size(); i++) {
+            Content c = contentRegions.get(i);
             if (resize && !c.isResizableWithParent()) {
                 c.setArea(c.getResizableWithParentArea());
             }
 
             c.setX(startX);
             c.setY(startY);
-            if (horizontal) {
-                startX += (c.getArea() + dividerWidth);
-            } else {
-                startY += (c.getArea() + dividerWidth);
+
+            ContentDivider d = null;
+            if (i < contentDividers.size()) d = contentDividers.get(i);
+            if (d != null) {
+                if (horizontal) {
+                    startX += (c.getArea() + (d.isVisible() ? contentDividers.get(i).prefWidth(-1) : 0));
+                } else {
+                    startY += (c.getArea() + (d.isVisible() ? contentDividers.get(i).prefWidth(-1) : 0));
+                }
             }
         }
 
@@ -896,10 +903,8 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
     private void layoutDividersAndContent(double width, double height) {
         final double paddingX = snappedLeftInset();
         final double paddingY = snappedTopInset();
-        final double dividerWidth = contentDividers.isEmpty() ? 0 : contentDividers.get(0).prefWidth(-1);
         double divWidth = 0;
         for (Content c: contentRegions) {
-//            System.out.println("LAYOUT " + c.getId() + " PANELS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? c.getArea() : width) + " H " + (horizontal ? height : c.getArea()));
             if (horizontal) {
                 c.setClipSize(c.getArea(), height);
                 layoutInArea(c, c.getX() + paddingX, c.getY() + paddingY, c.getArea(), height,
@@ -911,8 +916,12 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             }
         }
         for (ContentDivider c: contentDividers) {
-            if (c.isVisible()) divWidth = c.prefWidth(-1);
-//            System.out.println("LAYOUT DIVIDERS X " + c.getX() + " Y " + c.getY() + " W " + (horizontal ? dividerWidth : width) + " H " + (horizontal ? height : dividerWidth));
+            if (c.isVisible()) {
+                divWidth = c.prefWidth(-1);
+            } else {
+                divWidth = 0;
+            }
+
             if (horizontal) {
                 c.resize(divWidth, height);
                 positionInArea(c, c.getX() + paddingX, c.getY() + paddingY, divWidth, height,
@@ -1009,7 +1018,6 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             setGrabberStyle(horizontal);
             getChildren().add(grabber);
 
-            // TODO register a listener for SplitPane.Divider position
         }
 
         public SplitPane.Divider getDivider() {
@@ -1050,7 +1058,6 @@ public class SplitPaneSkin extends SkinBase<SplitPane> {
             this.pressPos = pressPos;
         }
 
-        // TODO remove x and y and replace with dividerpos.
         public double getX() {
             return x;
         }
