@@ -31,6 +31,7 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     public static List<DockPane> dockPanes = new ArrayList<>();
 
     private SplitPane root;
+    private Node promptNode;
 
     private Popup winDockPopup, nodeDockPopup;
     private double CIRCLE_RADIUS = 100;
@@ -89,14 +90,24 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     }
 
     public DockPane(){
-        this(true);
+        this(null, true);
+    }
+
+    public DockPane(Node promptNode){
+        this(promptNode,true);
     }
 
     public DockPane(boolean winInteractive){
+        this(null,winInteractive);
+    }
+
+    public DockPane(Node promptNode, boolean winInteractive){
 
         super();
 
         this.winInteractive = winInteractive;
+
+        setPromptNode(promptNode);
 
         this.addEventHandler(DockEvent.ANY, this);
         this.addEventFilter(DockEvent.ANY, event -> {
@@ -192,6 +203,16 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
 
     public boolean getUseDockPaneBoundaryForSideDock(){
         return useDockPaneBoundaryForSideDock;
+    }
+
+    public void setPromptNode(Node node){
+        if (node != null){
+            if (promptNode != null){
+                this.getChildren().remove(0);
+            }
+            this.promptNode = node;
+            this.getChildren().add(0,node);
+        }
     }
 
 
