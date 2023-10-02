@@ -500,19 +500,19 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
             int winThreshold = 25;
             int dockThreshold = 25;
             //Check if at window border
-            if(event.getScreenX() - window.getX() - winInsets.getLeft() < winThreshold){
+            if(winInteractive && event.getScreenX() - window.getX() - winInsets.getLeft() < winThreshold){
                 dockAnchor = DockAnchor.LEFT;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget,dockAnchor);
-            } else if((window.getX() + window.getWidth() - winInsets.getRight() - winInsets.getLeft()) - event.getScreenX() < winThreshold){
+            } else if(winInteractive && (window.getX() + window.getWidth() - winInsets.getRight() - winInsets.getLeft()) - event.getScreenX() < winThreshold){
                 dockAnchor = DockAnchor.RIGHT;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget, dockAnchor);
-            } else if(event.getScreenY() - window.getY() - winInsets.getTop() < winThreshold){
+            } else if(winInteractive && event.getScreenY() - window.getY() - winInsets.getTop() < winThreshold){
                 dockAnchor = DockAnchor.TOP;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget, dockAnchor);
-            } else if((window.getY()) + window.getHeight() - winInsets.getTop() - winInsets.getBottom() - event.getScreenY() < winThreshold){
+            } else if(winInteractive && (window.getY()) + window.getHeight() - winInsets.getTop() - winInsets.getBottom() - event.getScreenY() < winThreshold){
                 dockAnchor = DockAnchor.BOTTOM;
                 dockNodeTarget = this;
                 showWinDockPopup(dockNodeTarget,dockAnchor);
@@ -591,9 +591,6 @@ public class DockPane extends StackPane implements EventHandler<DockEvent> {
     }
 
     public void showWinDockPopup(Node dockNodeTarget, DockAnchor dockAnchor){
-
-        if(!winInteractive)
-            return;
 
         hideNodeDockPopup();
 
